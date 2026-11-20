@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esoteric sources of the avant-garde: proximity through time</title>
+<style>
+:root{--text-primary:#1f1e1c;--text-secondary:#6b6a65;--surface-1:#ffffff;--bg-neutral:#f1efe8;--border:#d3d1c7}
+body{margin:0;padding:12px 16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--surface-1);color:var(--text-primary)}
+h1{font-size:20px;font-weight:500;margin:0 0 2px}
+.sub{font-size:13px;color:var(--text-secondary);margin-bottom:6px;max-width:900px;line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-secondary);margin:5px 0;align-items:center}
+.row label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+.row i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.row b{font-weight:500;color:var(--text-primary);margin-right:2px}
+select,input[type=text],button{font:inherit;font-size:13px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-primary)}
+button{cursor:pointer;background:var(--bg-neutral)}button.on{background:#1f1e1c;color:#fff}
+#wrap{display:flex;gap:14px;align-items:flex-start}
+#plot{flex:1;min-width:0;position:relative}
+#sv{cursor:grab;touch-action:none;background:#fbfaf7;border:1px solid var(--bg-neutral);border-radius:10px}
+#side{width:300px;flex:none;font-size:13px;position:sticky;top:8px;max-height:94vh;overflow:auto;border-left:1px solid var(--border);padding-left:12px}
+#side h2{font-size:16px;font-weight:500;margin:0}
+#side h3{font-size:13px;font-weight:500;margin:10px 0 2px}
+#side .meta{color:var(--text-secondary);margin:2px 0 6px}
+#side .c{padding:4px 0;border-top:1px solid var(--bg-neutral);line-height:1.35}
+#side a{color:var(--text-primary);cursor:pointer;border-bottom:1px dotted #999;text-decoration:none}
+#side .c span,#side .note{color:var(--text-secondary)}
+#side .stat{display:flex;justify-content:space-between;border-top:1px solid var(--bg-neutral);padding:2px 0}
+#side button{font-size:12px;margin:4px 4px 2px 0}
+svg text.lb{font-size:11px;fill:var(--text-primary);pointer-events:none;paint-order:stroke;stroke:#fbfaf7;stroke-width:3.5px;stroke-linejoin:round}
+svg text.lb.mv{font-weight:600;font-size:12px}
+svg text.ax{font-size:11px;fill:var(--text-secondary)}
+svg text.at{font-size:12.5px;font-weight:500;fill:var(--text-secondary)}
+svg circle.p{stroke:#fff;stroke-width:1;cursor:pointer}
+svg line.lk{stroke-linecap:round;pointer-events:visibleStroke;cursor:pointer}
+#tip{position:fixed;pointer-events:none;background:rgba(31,30,28,.93);color:#fff;font-size:12px;padding:5px 8px;border-radius:6px;display:none;max-width:280px;line-height:1.35;z-index:9}
+@media (max-width:860px){#wrap{flex-direction:column}#side{width:auto;border-left:none;border-top:1px solid var(--border);padding:8px 0 0;position:static;max-height:none}}
+</style>
+</head>
+<body>
+<h1>Proximity through time: who is close to whom, and who connects the eras</h1>
+<div class="sub">Time runs left to right. Up–down, and the spread within each period, show <b>network proximity</b>: people a few steps apart are placed close together. <b>Size</b> is the maven score, how often someone lies on the shortest route between people in different periods. Drag to rotate into 3D; click a person to trace how influence ran through them.</div>
+<div class="row">
+ <b>View</b><button id="flat" class="on">Flat: time × proximity</button><button id="tilt">3D: time × proximity × proximity</button><button id="spin">Spin</button>
+ <b style="margin-left:6px">Layout</b><select id="mode"><option value="time">Time across, proximity up/down</option><option value="prox">Proximity only (clusters)</option></select>
+</div>
+<div class="row" id="lay"><b>Layers</b></div>
+<div class="row"><b>Links count as</b>
+ <label><input type="checkbox" id="kd" checked> Met / worked together (strong)</label>
+ <label><input type="checkbox" id="kg" checked> Group / corresponded (medium)</label>
+ <label><input type="checkbox" id="ki" checked> Influence (weak)</label>
+</div>
+<div class="row"><b>Find</b><input type="text" id="q" list="names" placeholder="Name…" style="width:170px"><datalist id="names"></datalist>
+ <b style="margin-left:6px">Names</b><select id="lbl"><option value="mav">top mavens</option><option value="all">everyone</option><option value="none">only selected</option></select>
+ <b style="margin-left:6px">Colour</b><select id="ac"><option value="cat">Category</option><option value="mav">Maven score</option></select>
+ <label><input type="checkbox" id="alll"> All links (faint)</label>
+</div>
+<div id="wrap">
+ <div id="plot"><svg id="sv" width="100%"></svg></div>
+ <div id="side"></div>
+</div>
+<div id="tip"></div>
+<script src="data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const {CAT,N,E,LAB}=window.NETDATA,KEYS=Object.keys(CAT);
+const ERA=["to 1860","1860–1900","1900–18","1920s","1930s","1940s–50s","1960s–70s","1980s–90s"];
+const KIND={d:"met / worked together",g:"same group / corresponded / supported",i:"influence"};
+const WT={d:1,g:1.6,i:2.6};          // path length per link type: shorter = closer
+const all=N.map(d=>({id:d[0],g:d[1],e:d[2],hub:d[3]||0}));
+const byId=Object.fromEntries(all.map(n=>[n.id,n]));
+const spec=E.map(e=>({s:e[0],t:e[1],k:e[2],txt:e[3]}));
+const on={};KEYS.forEach(k=>on[k]=true);
+let sel=null,trace=null,links=[],nodes=[],adj={},topM=[];
+const $=id=>document.getElementById(id);
+
+// ---------- maths ----------
+// small binary heap for shortest paths
+class Heap{constructor(){this.a=[];}get size(){return this.a.length;}push(x){const a=this.a;a.push(x);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(a[p][0]<=a[i][0])break;[a[p],a[i]]=[a[i],a[p]];i=p;}}
+ pop(){const a=this.a,t=a[0],l=a.pop();if(a.length){a[0]=l;let i=0;for(;;){let m=i;const L=2*i+1,R=L+1;if(L<a.length&&a[L][0]<a[m][0])m=L;if(R<a.length&&a[R][0]<a[m][0])m=R;if(m===i)break;[a[m],a[i]]=[a[i],a[m]];i=m;}}return t;}}
+function dijkstra(src,ids){const d={};ids.forEach(v=>d[v]=Infinity);d[src]=0;const done=new Set(),Q=new Heap();Q.push([0,src]);
+ while(Q.size){const [dv,v]=Q.pop();if(done.has(v))continue;done.add(v);
+  for(const [w,c] of adj[v])if(dv+c<d[w]){d[w]=dv+c;Q.push([d[w],w]);}}return d;}
+function mds(D,k){ // classical MDS: top-k eigenvectors of double-centred -0.5*D^2
+ const n=D.length,B=D.map(r=>r.map(x=>-.5*x*x)),rm=B.map(r=>d3.mean(r)),gm=d3.mean(rm);
+ for(let i=0;i<n;i++)for(let j=0;j<n;j++)B[i][j]=B[i][j]-rm[i]-rm[j]+gm;
+ const out=[];let seed=1;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647-.5;};
+ for(let c=0;c<k;c++){let v=Array.from({length:n},rnd),lam=0;
+  for(let it=0;it<300;it++){const w=new Array(n).fill(0);for(let i=0;i<n;i++){let s=0;const Bi=B[i];for(let j=0;j<n;j++)s+=Bi[j]*v[j];w[i]=s;}
+   let nr=0;for(let i=0;i<n;i++)nr+=w[i]*w[i];nr=Math.sqrt(nr)||1;lam=nr;v=w.map(x=>x/nr);}
+  out.push(v.map(x=>x*Math.sqrt(Math.max(lam,0))));
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++)B[i][j]-=lam*v[i]*v[j];}
+ return out;}
+function compute(){
+ const K={d:$("kd").checked,g:$("kg").checked,i:$("ki").checked};
+ nodes=all.filter(n=>on[n.g]);const vis=new Set(nodes.map(n=>n.id)),ids=[...vis];
+ links=spec.filter(l=>K[l.k]&&vis.has(l.s)&&vis.has(l.t));
+ adj={};ids.forEach(v=>adj[v]=[]);links.forEach(l=>{adj[l.s].push([l.t,WT[l.k]]);adj[l.t].push([l.s,WT[l.k]]);});
+ nodes.forEach(n=>{n.deg=adj[n.id].length;n.espan=new Set(adj[n.id].map(([w])=>byId[w].e)).size;n.mav=0;});
+ // distances
+ const Dm={};ids.forEach(v=>Dm[v]=dijkstra(v,ids));
+ let mx=0;ids.forEach(a=>ids.forEach(b=>{const x=Dm[a][b];if(isFinite(x)&&x>mx)mx=x;}));
+ const D=ids.map(a=>ids.map(b=>isFinite(Dm[a][b])?Dm[a][b]:mx+2));
+ const C=mds(D,3);const nz=C.map(c=>d3.max(c,Math.abs)||1);
+ ids.forEach((v,i)=>{const n=byId[v];n.p1=C[0][i]/nz[0];n.p2=C[1][i]/nz[1];n.p3=C[2][i]/nz[2];});
+ // maven score: weighted betweenness over pairs at least two periods apart (Brandes, weighted)
+ ids.forEach(s=>{const S=[],P={},sg={},dist={};ids.forEach(v=>{P[v]=[];sg[v]=0;dist[v]=Infinity});sg[s]=1;dist[s]=0;const Q=new Heap(),done=new Set();Q.push([0,s]);
+  while(Q.size){const [dv,v]=Q.pop();if(done.has(v))continue;done.add(v);S.push(v);
+   for(const [w,c] of adj[v]){const nd=dv+c;if(nd<dist[w]-1e-9){dist[w]=nd;sg[w]=sg[v];P[w]=[v];Q.push([nd,w]);}else if(Math.abs(nd-dist[w])<1e-9){sg[w]+=sg[v];P[w].push(v);}}}
+  const de={};ids.forEach(v=>de[v]=0);const es=byId[s].e;
+  while(S.length){const w=S.pop();const cross=Math.abs(byId[w].e-es)>=2?1:0;for(const v of P[w])de[v]+=sg[v]/sg[w]*(cross+de[w]);if(w!==s)byId[w].mav+=de[w];}});
+ const mm=d3.max(nodes,n=>n.mav)||1;nodes.forEach(n=>n.mav/=mm);
+ topM=nodes.slice().sort((a,b)=>b.mav-a.mav).slice(0,15);
+ layout();
+}
+// 3D coordinates in [-1,1]
+function layout(){const m=$("mode").value;
+ // within each period, spread people across the column by their second proximity dimension
+ d3.groups(nodes,n=>n.e).forEach(([e,g])=>{g.sort((a,b)=>a.p2-b.p2).forEach((n,i)=>n.q=g.length>1?i/(g.length-1):.5);});
+ nodes.forEach(n=>{if(m==="time"){n.X=-1+n.e/7*2+(n.q-.5)*.25;n.Y=n.p1;n.Z=n.p2;}else{n.X=n.p1;n.Y=n.p2;n.Z=n.p3;}});
+ // nudge overlapping points apart a little (in the current flat plane only)
+ const sim=d3.forceSimulation(nodes.map(n=>({n,x:n.X*400,y:n.Y*300}))).force("x",d3.forceX(d=>d.n.X*400).strength(m==="time"?.3:.4)).force("y",d3.forceY(d=>d.n.Y*300).strength(.4)).force("c",d3.forceCollide(m==="time"?7:5.5)).stop();
+ for(let i=0;i<120;i++)sim.tick();sim.nodes().forEach(d=>{d.n.X=d.x/400;d.n.Y=d.y/300;});
+}
+
+// ---------- drawing ----------
+const W=1000,H=700,CX=W/2,CY=H/2-10,SX=410,SY=280;
+const svg=d3.select("#sv").attr("viewBox",`0 0 ${W} ${H}`);
+const gA=svg.append("g"),gL=svg.append("g"),gP=svg.append("g"),gT=svg.append("g");
+let yaw=0,pitch=0,spin=null;
+function proj(x,y,z){const c=Math.cos(yaw),s=Math.sin(yaw),x1=x*c+z*s,z1=-x*s+z*c,cp=Math.cos(pitch),sp=Math.sin(pitch),y1=y*cp-z1*sp,d=y*sp+z1*cp;return [CX+x1*SX,CY-y1*SY,d];}
+const mavCol=d3.scaleSequential(d3.interpolateYlOrRd).domain([-.15,1]);
+function col(n){return $("ac").value==="mav"?mavCol(n.mav):CAT[n.g][1];}
+function inTrace(id){return !trace||trace.has(id);}
+function nb(){const s=new Set();if(sel){s.add(sel.id);links.forEach(l=>{if(l.s===sel.id)s.add(l.t);if(l.t===sel.id)s.add(l.s);});}return s;}
+function render(){
+ nodes.forEach(n=>{const [x,y,d]=proj(n.X,n.Y,n.Z);n.sx=x;n.sy=y;n.dp=d;});
+ // axes / frame
+ gA.selectAll("*").remove();
+ if($("mode").value==="time"){for(let e=0;e<8;e++){const x=-1+e/7*2,[a1,b1]=proj(x,-1.08,0),[a2,b2]=proj(x,1.08,0),[a3,b3]=proj(x,-1.15,0);
+   gA.append("line").attr("x1",a1).attr("y1",b1).attr("x2",a2).attr("y2",b2).attr("stroke","#e6e3da").attr("stroke-dasharray","3 4");
+   gA.append("text").attr("class","ax").attr("x",a3).attr("y",b3+12).attr("text-anchor","middle").text(ERA[e]);}
+  const [l1,m1]=proj(-1.1,-1.1,0),[l2,m2]=proj(1.1,-1.1,0);gA.append("line").attr("x1",l1).attr("y1",m1).attr("x2",l2).attr("y2",m2).attr("stroke","#bbb");
+  gA.append("text").attr("class","at").attr("x",W/2).attr("y",H-8).attr("text-anchor","middle").text("Time →");
+  gA.append("text").attr("class","at").attr("transform",`translate(14,${H/2}) rotate(-90)`).attr("text-anchor","middle").text("Network proximity (close = closely linked)");}
+ else gA.append("text").attr("class","at").attr("x",W/2).attr("y",H-8).attr("text-anchor","middle").text("Proximity only: clusters are groups of closely linked people");
+ const N2=nb(),showAll=$("alll").checked;
+ // links
+ const L=links.filter(l=>(showAll&&inTrace(l.s)&&inTrace(l.t))||(sel&&!trace&&(l.s===sel.id||l.t===sel.id))||(trace&&trace.has(l.s)&&trace.has(l.t)&&l.tr));
+ gL.selectAll("line.lk").data(L,l=>l.s+"|"+l.t+"|"+l.k).join("line").attr("class","lk")
+  .attr("x1",l=>byId[l.s].sx).attr("y1",l=>byId[l.s].sy).attr("x2",l=>byId[l.t].sx).attr("y2",l=>byId[l.t].sy)
+  .attr("stroke",l=>{const hot=(sel&&(l.s===sel.id||l.t===sel.id))||(trace&&l.tr);return hot?"#3d3a35":"#9a978f";})
+  .attr("stroke-width",l=>(sel&&(l.s===sel.id||l.t===sel.id))||(trace&&l.tr)?1.5:.6)
+  .attr("stroke-opacity",l=>(sel&&(l.s===sel.id||l.t===sel.id))||(trace&&l.tr)?.7:.18)
+  .attr("stroke-dasharray",l=>l.k==="g"?"6 4":l.k==="i"?"1.5 4":null)
+  .on("mousemove",(e,l)=>tipShow(e,`<b>${l.s} — ${l.t}</b><br>${KIND[l.k]}: ${l.txt}`)).on("mouseleave",tipHide);
+ // points (sorted back to front)
+ const pts=gP.selectAll("circle.p").data(nodes,d=>d.id).join(en=>en.append("circle").attr("class","p")
+   .on("mousemove",(e,d)=>tipShow(e,`<b>${d.id}</b><br>${CAT[d.g][0]} · ${ERA[d.e]}<br>Connections ${d.deg} · periods reached ${d.espan}<br>Maven score ${d3.format(".0%")(d.mav)}`))
+   .on("mouseleave",tipHide).on("click",(e,d)=>{e.stopPropagation();select(d);}));
+ const dpS=d3.extent(nodes,n=>n.dp),dk=d3.scaleLinear().domain(dpS[0]===dpS[1]?[-1,1]:dpS).range([.75,1.15]);
+ pts.attr("cx",d=>d.sx).attr("cy",d=>d.sy).attr("r",d=>(3+Math.sqrt(d.mav)*12)*(pitch||yaw?dk(d.dp):1)).attr("fill",col)
+  .attr("opacity",d=>{if(trace)return trace.has(d.id)?1:.08;if(sel)return N2.has(d.id)?1:.14;return .9;})
+  .attr("stroke",d=>d===sel?"#1f1e1c":"#fff").attr("stroke-width",d=>d===sel?2.5:1);
+ pts.sort((a,b)=>a.dp-b.dp);
+ // labels
+ const m=$("lbl").value,top=new Set(topM.slice(0,12).map(n=>n.id));
+ const show=nodes.filter(n=>trace?trace.has(n.id)&&(n.mav>.15||n===sel||trace.size<30):sel?N2.has(n.id):m==="all"||(m==="mav"&&top.has(n.id)));
+ gT.selectAll("text.lb").data(show,d=>d.id).join("text").attr("class",d=>"lb"+(top.has(d.id)?" mv":""))
+  .attr("x",d=>d.sx+5+Math.sqrt(d.mav)*12).attr("y",d=>d.sy+4).text(d=>d.id);
+}
+const tip=$("tip");function tipShow(e,h){tip.style.display="block";tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";tip.innerHTML=h;}function tipHide(){tip.style.display="none";}
+
+// ---------- tracing influence through time ----------
+function doTrace(dir){ // dir +1 forward in time, -1 backward
+ const seen=new Set([sel.id]),Q=[sel.id];links.forEach(l=>l.tr=false);
+ while(Q.length){const v=Q.shift(),ev=byId[v].e;
+  for(const l of links){if(l.s!==v&&l.t!==v)continue;const w=l.s===v?l.t:l.s,ew=byId[w].e;
+   if((dir>0&&ew>=ev)||(dir<0&&ew<=ev)){if(ew===ev&&v!==sel.id)continue;l.tr=true;if(!seen.has(w)){seen.add(w);Q.push(w);}}}}
+ trace=seen;render();side.querySelector("#trinfo").innerHTML=`${seen.size-1} people reached by stepping ${dir>0?"forward":"back"} through time from ${sel.id}. Hover lines for each link.`;
+}
+
+// ---------- side panel ----------
+const side=$("side");
+function select(n){sel=n||null;trace=null;links.forEach(l=>l.tr=false);render();panel();}
+function panel(){
+ if(!sel){side.innerHTML=`<h2>Top mavens</h2><div class="meta">People most often on the shortest route between figures at least two periods apart, given the links ticked above.</div>
+  ${topM.map((n,i)=>`<div class="c">${i+1}. <a data-id="${n.id.replace(/"/g,"&quot;")}">${n.id}</a> <span>· ${ERA[n.e]} · ${d3.format(".0%")(n.mav)}</span></div>`).join("")}
+  <h3>Reading it</h3><div class="note">Closeness up–down means few steps apart in the network. Long runs of connected people across the time axis show where ideas travelled. Untick “Influence” to see only real-life contact.</div>`;}
+ else{const mine=links.filter(l=>l.s===sel.id||l.t===sel.id).sort((a,b)=>byId[a.s===sel.id?a.t:a.s].e-byId[b.s===sel.id?b.t:b.s].e);
+  const rank=topM.indexOf(sel);
+  side.innerHTML=`<h2>${sel.id}</h2><div class="meta"><span style="color:${CAT[sel.g][1]}">●</span> ${CAT[sel.g][0]} · ${LAB[sel.e]}</div>
+  <div class="stat"><span>Connections</span><b>${sel.deg}</b></div><div class="stat"><span>Periods reached</span><b>${sel.espan}</b></div>
+  <div class="stat"><span>Maven score</span><b>${d3.format(".0%")(sel.mav)}${rank>=0?` (#${rank+1})`:""}</b></div>
+  <button id="tf">Trace forward in time →</button><button id="tb">← Trace back</button><button id="clr">Clear</button>
+  <div class="note" id="trinfo"></div><h3>Connections, earliest first</h3>
+  ${mine.map(l=>{const o=l.s===sel.id?l.t:l.s;return `<div class="c">${l.k==="d"?"●":l.k==="g"?"◌":"·"} <a data-id="${o.replace(/"/g,"&quot;")}">${o}</a> <span>(${ERA[byId[o].e]})</span><br><span>${l.txt}</span></div>`;}).join("")}`;
+  $("tf").onclick=()=>doTrace(1);$("tb").onclick=()=>doTrace(-1);$("clr").onclick=()=>select(null);}
+ side.querySelectorAll("a[data-id]").forEach(a=>a.onclick=()=>{const m=byId[a.dataset.id];if(m&&on[m.g])select(m);});
+}
+
+// ---------- controls ----------
+const lay=$("lay");
+KEYS.forEach(k=>{const lb=document.createElement("label");lb.innerHTML=`<input type="checkbox" checked data-k="${k}"><i style="background:${CAT[k][1]}"></i>${CAT[k][0]}`;lay.appendChild(lb);});
+lay.addEventListener("change",e=>{if(e.target.dataset.k){on[e.target.dataset.k]=e.target.checked;if(sel&&!on[sel.g])sel=null;compute();render();panel();}});
+["kd","kg","ki"].forEach(id=>$(id).onchange=()=>{compute();trace=null;render();panel();});
+$("mode").onchange=()=>{layout();render();};
+["lbl","ac","alll"].forEach(id=>$(id).onchange=render);
+$("names").innerHTML=all.map(n=>`<option value="${n.id.replace(/"/g,"&quot;")}">`).join("");
+$("q").onchange=e=>{const n=byId[e.target.value];if(!n)return;if(!on[n.g]){on[n.g]=true;lay.querySelector(`[data-k="${n.g}"]`).checked=true;compute();}select(n);};
+function setView(y,p,ms){const y0=yaw,p0=pitch;d3.transition().duration(ms).tween("v",()=>t=>{yaw=y0+(y-y0)*t;pitch=p0+(p-p0)*t;render();});}
+$("flat").onclick=()=>{stopSpin();setView(0,0,700);$("flat").classList.add("on");$("tilt").classList.remove("on");};
+$("tilt").onclick=()=>{setView(-.75,.35,900);$("tilt").classList.add("on");$("flat").classList.remove("on");};
+function stopSpin(){if(spin){spin.stop();spin=null;$("spin").classList.remove("on");}}
+$("spin").onclick=()=>{if(spin)return stopSpin();$("spin").classList.add("on");if(!pitch)pitch=.3;$("flat").classList.remove("on");spin=d3.timer(()=>{yaw+=.006;render();});};
+svg.call(d3.drag().on("start",()=>{stopSpin();svg.style("cursor","grabbing");}).on("drag",e=>{yaw+=e.dx*.008;pitch=Math.max(-1.4,Math.min(1.4,pitch+e.dy*.008));$("flat").classList.toggle("on",!yaw&&!pitch);$("tilt").classList.remove("on");render();}).on("end",()=>svg.style("cursor","grab")));
+svg.on("click",e=>{if(e.target.tagName==="svg")select(null);});
+
+compute();render();panel();
+</script>
+</body>
+</html>

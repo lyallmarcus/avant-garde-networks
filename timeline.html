@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Light, sound and ritual: events 1840–2010</title>
+<style>
+:root{--text-primary:#1f1e1c;--text-secondary:#6b6a65;--surface-1:#ffffff;--bg-neutral:#f1efe8;--border:#d3d1c7}
+body{margin:0;padding:12px 16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--surface-1);color:var(--text-primary)}
+h1{font-size:20px;font-weight:500;margin:0 0 6px}
+#tm text.ev{font-size:11.5px;fill:var(--text-primary);paint-order:stroke;stroke:var(--surface-1);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+#tm text.pl{font-style:italic;fill:var(--text-secondary)}
+#tm text.ax{font-size:11px;fill:var(--text-secondary)}
+#tm text.per{font-size:12px;font-weight:500;fill:var(--text-secondary)}
+#tm text.lh{font-size:13px;font-weight:500}
+#tm rect.band{fill:var(--bg-neutral)}
+#tm path.lin{fill:none;stroke:var(--text-secondary);stroke-opacity:.45;stroke-width:1.2}
+#tm path.lin.on{stroke:var(--text-primary);stroke-opacity:1;stroke-width:2}
+#tm circle{cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-secondary);margin:4px 0}
+.row label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.row i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.row b{font-weight:500;color:var(--text-primary);margin-right:4px}
+#cap{position:sticky;top:0;background:var(--surface-1);font-size:14px;color:var(--text-secondary);min-height:44px;padding:6px 0;line-height:1.5;z-index:2;border-bottom:1px solid var(--border)}
+#cap strong{font-weight:500;color:var(--text-primary)}
+</style>
+</head>
+<body>
+<h1>Light, sound and ritual: real and planned events, 1840–2010</h1>
+<div class="row" id="lane"><b>Kinds</b></div>
+<div class="row"><b>Show</b>
+<label><input type="checkbox" id="realT" checked> Real events (filled)</label>
+<label><input type="checkbox" id="planT" checked> Planned / unrealised (hollow)</label>
+<label><input type="checkbox" id="linT" checked> Lineage lines</label>
+</div>
+<div id="cap">Hover or tap an event to read about it. Drag events sideways if labels crowd.</div>
+<svg id="tm" width="100%" viewBox="0 0 1100 2570"></svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const LN=[["c","Light, colour & sound","#1D9E75"],["p","Projection & film shows","#378ADD"],["e","Exhibitions & buildings","#888780"],["r","Rites & occult staging","#D85A30"],["x","Psychedelic, rock & rave","#E24B4A"]];
+const LI=Object.fromEntries(LN.map((l,i)=>[l[0],i])),COL=Object.fromEntries(LN.map(l=>[l[0],l[2]]));
+const onL={};LN.forEach(l=>onL[l[0]]=true);
+const EV=[
+["I1","Doublevision video label",1982.3,"p",0,"1982","Cabaret Voltaire and Paul Smith release videos by themselves, Throbbing Gristle, Neubauten, Clock DVA, 23 Skidoo and CTI."],
+["I2","Laibach: We Forge the Future",1983.4,"p",0,"1983","Zagreb: 35mm footage of Yugoslav history projected with Super 8 loops over the concert."],
+["I3","Test Dept: Program for Progress",1984.6,"x",0,"1984","Site-specific show at Cannon Street station; Brett Turnbull's slide and film projections."],
+["I4","Test Dept at Bishop's Bridge depot",1986.3,"x",0,"Apr 1986","The Unacceptable Face of Freedom: news footage of the miners' strike, the Falklands and Wapping."],
+["I5","Archaos on Clapham Common",1990.5,"x",0,"1990","The French chainsaw-and-motorbike circus sells out for 12 weeks."],
+["I6","Tomato & Underworld",1993.9,"x",0,"1993–94","Dubnobasswithmyheadman: Tomato handles sleeves, videos and live projections."],
+["L1","Red Dog Saloon light shows",1965.5,"x",0,"Summer 1965","Bill Ham projects for the Charlatans in Virginia City, Nevada: often called the first psychedelic concert."],
+["L2","Tape Music Center light environments",1963.6,"c",0,"1963–65","Tony Martin, visual director of the SF Tape Music Center, projects live alongside composers' pieces."],
+["L3","Avalon Ballroom light shows",1966.3,"x",0,"1966","Bill Ham runs the light shows at the Family Dog's Avalon Ballroom."],
+["L4","USCO intermedia environments",1965.2,"p",0,"1964–66","Strobe and multi-projector environments; Leary's Psychedelic Theater; Expanded Cinema festival, New York 1965."],
+["L5","Electric Circus opens",1967.45,"x",0,"1967","St Marks Place discotheque; visual systems designed by Tony Martin."],
+["L6","Headlights with Jefferson Airplane",1967.7,"x",0,"1967–71","Glenn McKay and Jerry Abrams' liquid light show for the Airplane."],
+["L7","Single Wing Turquoise Bird",1968.4,"x",0,"1968","LA light show at the Shrine Exposition Hall, behind Cream and the Velvet Underground."],
+["L8","Light Sound Dimension",1967.95,"c",0,"1967–68","Bill Ham with jazz musicians including Jerry Granelli: light and sound improvised as a performance in itself."],
+["L9","Light Artists Guild strike",1969.4,"x",0,"1969","San Francisco light-show artists organise for pay and credit, led by Headlights and the Holy See."],
+["L10","Joe's Lights at the Rainbow",1972,"x",0,"early 1970s","The former Joshua Light Show becomes resident at London's Rainbow Theatre."],
+["R1","VJing at Hurrah",1980.5,"p",0,"c.1980","Merrill Aldighieri mixes ambient video live with the DJ in New York; credited as the first full-time VJ."],
+["R2","Stakker Humanoid",1988.8,"x",0,"1988","Stakker's 'Eurotechno' video and Brian Dougans' acid house track reach the UK charts."],
+["R3","Emergency Broadcast Network",1991.5,"p",0,"1991–93","Providence group remixes TV footage as music; tours with U2's Zoo TV."],
+["R4","Cyberthon, Melbourne",1992.5,"p",0,"1991–95","Live VJ marathons broadcast on community TV, led by VJ Mandala (Adem Jaffers)."],
+["R5","Megadog MIDI Circus",1993.3,"x",0,"1993","Touring rave with projections, Coloursound Experiment lighting and acts including Aphex Twin."],
+["R6","Vegetable Vision & the Chemical Brothers",1994.6,"x",0,"1994–95","Slide projectors with propellers and 16mm loops behind the duo's first gigs."],
+["R7","Hexstatic at the first Big Chill",1995.3,"x",0,"1995","First video experiments; later residents at Ninja Tune's Stealth night."],
+["R8","The Light Surgeons founded",1995.7,"p",0,"1995","East London collective; later visuals for the Big Chill and U2."],
+["R9","JAM at the Barbican",1996.3,"e",0,"1996","Hex's interactive work exhibited; Coldcut and Hex make Synopticon."],
+["R10","Hexstatic: Rewind",2000.6,"x",0,"2000","The UK's first fully audiovisual album."],
+["E1","Polytechnic dissolving views",1845,"p",0,"1840s","Magic-lantern 'dissolving views' at London's Royal Polytechnic Institution."],
+["E2","Fox sisters' rappings",1848,"r",0,"1848","Hydesville, New York: the 'spirit rappings' that launched Spiritualism and the séance as performance."],
+["E3","Pepper's Ghost",1862,"p",0,"1862","Royal Polytechnic: stage 'ghosts' made with angled glass, at the height of the séance craze."],
+["E4","Houghton's spirit drawings",1871,"e",0,"1871","Georgiana Houghton exhibits her abstract 'spirit drawings' at the New British Gallery, London."],
+["E5","Bayreuth Festspielhaus",1876,"e",0,"1876","Wagner's darkened, immersive theatre for the total artwork."],
+["E6","Rimington's Colour-Organ",1895,"c",0,"1895","A. Wallace Rimington demonstrates his Colour-Organ in London."],
+["E7","Yeats's Castle of Heroes",1897,"r",1,"c.1895–1902","Yeats's planned Celtic mystical order and island temple, with Maud Gonne. Never founded."],
+["E8","Rites of Isis, Paris",1899,"r",0,"1899","MacGregor and Moina Mathers stage public 'Rites of Isis' in Paris."],
+["E9","af Klint's temple paintings",1907,"r",1,"1906–15","Paintings for the Temple, meant for a spiral temple that was never built."],
+["E10","Rites of Eleusis",1910,"r",0,"1910","Crowley's public ritual performances at Caxton Hall, London."],
+["P1","Prometheus premiere, no lights",1910.6,"c",0,"Moscow, 1911","Scriabin's Prometheus premieres under Koussevitzky with the colour-light part left out."],
+["E11","Steiner's Mystery Dramas",1911.2,"r",0,"1910–13","Rudolf Steiner stages his four Mystery Dramas in Munich."],
+["E12","Corra & Ginna's painted films",1911.5,"p",0,"1910–12","Futurist brothers hand-paint abstract films influenced by Thought-Forms. All lost."],
+["E13","First Blaue Reiter show",1911.9,"e",0,"Dec 1911","Munich: Kandinsky, Marc and their circle."],
+["E14","Kandinsky's Yellow Sound",1913.8,"c",1,"pub. 1912; staging cancelled 1914","Stage composition of colour, light, sound and movement; its Munich staging was cancelled by the war."],
+["E15","Survage's Rythmes colorés",1913.2,"p",1,"1912–14","Léopold Survage's painted designs for an abstract colour film. Never filmed."],
+["E16","Armory Show",1913,"e",0,"1913","New York: Duchamp and Kandinsky reach America."],
+["E17","Goetheanum built",1914.2,"e",0,"1913–22","Steiner's wooden temple-theatre at Dornach. Burned down 1922–23."],
+["E18","Scriabin's Mysterium",1914.8,"c",1,"unfinished, 1915","A multi-sensory rite meant for the Himalayas. Unfinished at Scriabin's death."],
+["E19","Prometheus with light, Carnegie Hall",1915.3,"c",0,"20 March 1915","First performance with colour light: Russian Symphony Orchestra under Modest Altschuler, using Preston Millar's 'Chromola'. Reviews were poor."],
+["E20","0,10 exhibition",1915.9,"e",0,"Dec 1915","Petrograd: Malevich shows the Black Square."],
+["E21","Ruttmann's Lichtspiel Opus 1",1921.3,"p",0,"1921","Among the first public abstract film screenings, Frankfurt. The young Fischinger saw it."],
+["E22","Wilfred's Clavilux debut",1922,"c",0,"1922","Thomas Wilfred's first public lumia recitals, New York."],
+["E23","Bauhaus reflected light plays",1923,"c",0,"1923","Hirschfeld-Mack and Schwerdtfeger's coloured-light plays at the Bauhaus exhibition."],
+["E24","Die glückliche Hand premiere",1924.4,"c",0,"1924","Schoenberg's opera with a scored crescendo of coloured light, Vienna."],
+["E25","Der absolute Film matinee",1925.3,"p",0,"May 1925","Berlin: Eggeling, Richter, Ruttmann, Léger and Hirschfeld-Mack in one programme."],
+["E26","László's Farblichtmusik",1925.6,"c",0,"from 1925","Alexander László's colour-light concerts."],
+["E27","Fischinger's Raumlichtkunst",1926.6,"p",0,"1926–27","Multi-projector colour shows in Munich — an early 'expanded cinema'."],
+["E28","Light-Space Modulator",1930,"c",0,"1930","Moholy-Nagy's kinetic light machine, shown in Paris."],
+["E29","Bute's Rhythm in Light",1934,"p",0,"1934","Mary Ellen Bute's first abstract film."],
+["E30","Lye's A Colour Box",1935,"p",0,"1935","Direct-painted film for the GPO, shown in ordinary cinemas."],
+["E31","International Surrealist Exhibition",1936.5,"e",0,"June 1936","London: Humphrey Jennings helped organise it; Breton spoke."],
+["E32","Degenerate Art",1937.5,"e",0,"1937","Nazi exhibition ridiculing Kandinsky, Klee, Mondrian and others, Munich."],
+["E33","Museum of Non-Objective Painting",1939.4,"e",0,"June 1939","Rebay's museum opens; McLaren ran its film screenings."],
+["E34","Spook Sport at Radio City",1940.1,"p",0,"1940","Bute's film with McLaren's animation plays at Radio City Music Hall."],
+["E35","Fantasia",1940.8,"p",0,"1940","Disney; Fischinger worked on the Toccata and Fugue, then left."],
+["E36","Art of This Century",1942.8,"e",0,"1942","Peggy Guggenheim's gallery opens; Deren filmed The Witch's Cradle there."],
+["E37","Guggenheim spiral commissioned",1943.5,"e",1,"1943","Rebay commissions Wright's 'temple of non-objectivity' (built 1956–59)."],
+["E38","Fischinger's dome theatre",1944,"p",1,"1944","A half-spherical 'planetarium' theatre proposed to Rebay. Never built."],
+["E39","Rebay's Film Center",1945.2,"p",1,"mid-1940s","Film centre with planetarium projection, planned with Fischinger. Never realised."],
+["E40","Deren at Provincetown Playhouse",1946.1,"p",0,"Feb 1946","Deren hires a theatre to show her own films."],
+["E41","Art in Cinema begins",1946.7,"p",0,"1946","San Francisco Museum of Art series showing Fischinger, Smith, Belson and Anger."],
+["E42","Smith's films with live bebop",1950,"p",0,"c.1950","Smith projects his hand-painted films to live jazz, including at Jimbo's Bop City."],
+["E43","Fifteen Americans, MoMA",1952,"e",0,"1952","Wilfred's lumia shown alongside Pollock and Rothko."],
+["E44","Vortex concerts",1957.4,"p",0,"1957–59","Belson and Jacobs at Morrison Planetarium: 38+ concerts."],
+["E45","Poème électronique",1958.3,"c",0,"1958","Philips Pavilion, Brussels Expo: Varèse, Le Corbusier, Xenakis."],
+["E46","Vortex in Brussels",1958.6,"p",0,"1958","Belson and Jacobs take Vortex to the Brussels World's Fair."],
+["E47","Pleasure Dome on three screens",1958.9,"p",0,"1958","Anger shows Inauguration of the Pleasure Dome as a triptych in Brussels (reported)."],
+["E48","Guggenheim spiral opens",1959.8,"e",0,"Oct 1959","Wright's building opens on Fifth Avenue."],
+["E49","Smith's lantern projections",1961.5,"p",0,"c.1957–60s","Smith presents Heaven and Earth Magic with an adapted projector and filters (details uncertain)."],
+["P2","Prometheus with light, Kazan",1962.4,"c",0,"1962","Bulat Galeyev's group in Kazan gives the first light-enhanced Prometheus in the USSR, founding the Prometei Institute."],
+["E50","Expanded Cinema Festival",1965.8,"p",0,"Nov–Dec 1965","Film-Makers' Cinematheque, New York."],
+["E51","Acid Tests",1965.9,"x",0,"1965–66","Kesey and the Pranksters, with the Grateful Dead."],
+["E52","Trips Festival",1966.05,"x",0,"Jan 1966","San Francisco: light shows, the Dead, Kesey, Stewart Brand."],
+["E53","Exploding Plastic Inevitable",1966.3,"x",0,"Apr 1966","Warhol and the Velvet Underground, New York."],
+["E54","Fillmore Auditorium light shows",1966.5,"x",0,"1966","Bill Graham's San Francisco shows with liquid-light projection."],
+["E55","Leary's Psychedelic Celebrations",1966.72,"x",0,"1966","Leary's light-show 'services' at the Village Theater — the future Fillmore East."],
+["E56","9 Evenings",1966.8,"c",0,"Oct 1966","Cage, Rauschenberg and Bell Labs engineers; led to E.A.T."],
+["E57","Lucifer Rising, first version",1966.9,"r",1,"1966–67","Anger's first attempt; footage stolen, project abandoned."],
+["E58","UFO Club",1966.95,"x",0,"Dec 1966","London, 1966–67: Pink Floyd and Soft Machine as house bands, Boyle and Hills' liquid-light environments, films including Anger's."],
+["E59","Human Be-In",1967.05,"x",0,"Jan 1967","Golden Gate Park: Ginsberg, Leary, Snyder."],
+["E60","14 Hour Technicolor Dream",1967.3,"x",0,"Apr 1967","Alexandra Palace, London."],
+["E61","Labyrinth, Expo 67",1967.4,"p",0,"1967","Low and Kroitor's multi-screen pavilion — a seed of IMAX."],
+["E62","Fillmore East & Joshua Light Show",1968.2,"x",0,"Mar 1968","New York, in the old Village Theater."],
+["E63","2001: A Space Odyssey",1968.3,"p",0,"1968","Kubrick; Stargate built on Whitney's slit-scan."],
+["E64","Cybernetic Serendipity",1968.6,"e",0,"1968","ICA London show of computer art, including John Whitney."],
+["P3","Prometheus with light, Yale",1970,"c",0,"1969 & 1971","Yale Symphony Orchestra spreads light sources through Woolsey Hall, using the audience as a reflective body."],
+["E65","Pepsi Pavilion, Expo 70",1970.4,"c",0,"1970","E.A.T.'s mirrored dome and fog sculpture, Osaka."],
+["E66","Grateful Dead's Wall of Sound",1974,"x",0,"1974","The Dead's giant touring sound system."],
+["T1","Gysin's Dreamachine",1961.2,"c",0,"1961","Brion Gysin's flicker machine, viewed with eyes closed; later championed by Burroughs and P-Orridge."],
+["T2","London Film-Makers' Co-op founded",1966.78,"p",0,"13 Oct 1966","Begun in the basement of Better Books, modelled on Mekas's New York Co-op; moved to the Arts Lab, home of British expanded cinema."],
+["T3","The Kitchen opens",1971.5,"e",0,"1971","Downtown New York space for video, music and performance; Arthur Russell was music director in 1974–75."],
+["T4","Paradise Garage",1977.5,"x",0,"1977–87","Larry Levan's New York club; Arthur Russell's records were remixed for it."],
+["T5","Whirl-y-Gig",1981.3,"x",0,"from 1981","Started as a humanistic-psychology dance event; parachute finale, and an integrated psychedelic lightshow from 1988."],
+["T6","Mutoid Waste warehouse parties",1984.5,"x",0,"from 1984","Junk-sculpture and Mad Max vehicles in squatted North London warehouses."],
+["T7","Psychic TV's acid house",1988.3,"x",0,"1988","Fake compilations such as Jack the Tab help name and launch UK acid house."],
+["T8","Exploding Cinema",1991.9,"p",0,"from 1991","Founded at the Cooltan squat in Brixton: open-access screenings in spaces transformed with slides and looped projections; 80+ events in 1992–99."],
+["T9","Zoo TV tour",1992.2,"x",0,"1992–93","U2's multimedia spectacle of screens and broadcast feeds; Eno helped shape the concept."],
+["T10","Castlemorton free festival",1992.4,"x",0,"May 1992","Spiral Tribe and other sound systems; led to the 1994 Criminal Justice Act."],
+["T11","Megatripolis at Heaven",1993.8,"x",0,"21 Oct 1993","Fraser Clark's club: McKenna lecture on opening night, an ambient room, talks by Ginsberg and Ram Dass."],
+["U1","Better Books' Cinema 65",1965.3,"p",0,"1965–66","Underground screenings and happenings with Jeff Keen, Bruce Lacey and John Latham in a Charing Cross Road bookshop."],
+["U2","Hornsey Light/Sound Workshop",1965.6,"c",0,"1965–68","Mike Leonard's projection and sound experiments at Hornsey College of Art; ended with the 1968 occupation."],
+["U3","Spontaneous Underground",1966.2,"x",0,"1966","Marquee events where Pink Floyd played under ink slides by Peter Wynne-Willson."],
+["U4","Destruction in Art Symposium",1966.7,"e",0,"Sept 1966","Gustav Metzger's London symposium, with Yoko Ono and John Latham."],
+["U5","K4 festival, Hornsey",1967.2,"c",0,"1967","Light/Sound Workshop environments with Bruce Lacey's machines and live Pink Floyd."],
+["U6","Sensual Laboratory with Hendrix",1968.15,"x",0,"Jan–Apr 1968","Boyle and Hills tour the US with Soft Machine and Jimi Hendrix, sharing a split screen with Fillmore light artists."],
+["U7","Filmaktion",1973.2,"p",0,"1973","Le Grice, Eatherley, Nicolson and Raban take projectors out of the booth into the space; a week at the Walker Art Gallery."],
+["U8","Line Describing a Cone",1973.6,"p",0,"1973","Anthony McCall's 'solid light' film: a beam that grows into a cone through haze over 30 minutes."],
+["U9","Festival of Expanded Cinema, ICA",1976.05,"p",0,"1976","Live film performances including Guy Sherwin's Paper Landscape."],
+["U10","The Girl Chewing Gum premiere",1976.2,"p",0,"10 Mar 1976","John Smith's film premieres at the London Film-Makers' Co-op."],
+["G8","Themersons' Europa",1931.8,"p",0,"1931–32","Franciszka and Stefan Themerson's abstract film in Poland; lost, partly recovered."],
+["G7","Tanz der Farben",1939.15,"p",0,"26 Feb 1939","Hans Fischinger's Gasparcolor abstract film — 10,000 drawings; bought by Tobis and quietly suppressed."],
+["G1","Games for May",1967.36,"x",0,"12 May 1967","Pink Floyd at the Queen Elizabeth Hall: the first British concert with both a complex light show and quadraphonic sound (the 'Azimuth Co-ordinator')."],
+["G9","Anthology Film Archives opens",1970.9,"e",0,"1970","Mekas and Kubelka's New York film archive and cinema; Smith's later base."],
+["G2","ELP's Pictures at an Exhibition film",1970.95,"x",0,"filmed Dec 1970; released 1972","Lyceum concert filmed and released with added psychedelic video effects."],
+["G3","Hawkwind's Space Ritual",1972.85,"x",0,"1972–73","Liquid Len's slide-projection light show, dancers and mime."],
+["G4","Jarre at Place de la Concorde",1979.55,"x",0,"14 July 1979","Electronic music with giant projections on buildings, Paris."],
+["G5","Vari-Lite debut, Genesis",1981.73,"x",0,"25 Sept 1981","First tour with automated, colour-changing moving lights (Abacab tour, Barcelona)."],
+["G6","Jarre in Houston",1986.3,"x",0,"1986","Lasers and projections on the city skyline, watched by over a million people."],
+["F1","Film als Film, Cologne",1977.2,"e",0,"1977","Kölnischer Kunstverein survey of formal experiment in film, organised by Birgit Hein and Wulf Herzogenrath; the original of Film as Film."],
+["F2","Film as Film, Hayward Gallery",1979.4,"e",0,"3 May–17 June 1979","Arts Council survey 'Formal Experiment in Film 1910–1975', London."],
+["E67","Smith's Mahagonny",1980,"p",0,"1980","Four-projector film premiered at Anthology Film Archives."],
+["E68","Lucifer Rising completed",1980.5,"r",0,"1980","Anger finishes it, with a score by Bobby Beausoleil."],
+["E69","The Spiritual in Art",1986.9,"e",0,"1986","LACMA: first major show linking abstraction to Theosophy and the occult."],
+["V1","Visual Music, MOCA & Hirshhorn",2005.3,"e",0,"2005","First US exhibition of visual music: 90+ works by 40+ artists — paintings, films, colour organs, installations. Belson made a new film for it."],
+["P4","Prometheus with light, Hamburg",2006.5,"c",0,"2006","Andrej Hoteev and the Hamburg Symphony Orchestra present the colour-light score, Laeiszhalle."],
+["P5","Prometheus with light, Yale",2010.1,"c",0,"Feb 2010","Anna Gawboy's full production with clavier à lumières and hall lighting."]
+];
+const LK=[["E1","E3"],["E2","E3"],["E2","E4"],["E5","E17"],["E5","E18"],["E6","E19"],["P1","E19"],["E18","E19"],["E19","E22"],["E19","P2"],["P2","P3"],["P3","P4"],["P4","P5"],["E13","E14"],["E14","E24"],["E22","E43"],["E43","E44"],["E21","E25"],["E21","E27"],["E26","E27"],["E23","E28"],["E27","E35"],["E27","E38"],["E38","E39"],["E38","E44"],["E44","E46"],["E44","E61"],["E61","E63"],["E29","E34"],["E40","E41"],["E25","E41"],["E41","E42"],["E42","E44"],["E42","E49"],["E49","E67"],["E44","E52"],["E51","E52"],["E52","E54"],["E54","E62"],["E55","E62"],["E50","E53"],["E58","E60"],["E56","E65"],["E45","E65"],["E8","E10"],["E11","E17"],["E9","E37"],["E33","E37"],["E37","E48"],["E9","E69"],["E4","E69"],["E57","E68"],["E36","E40"],["E25","F1"],["F1","F2"],["F2","V1"],["E69","V1"],["E44","V1"],["E43","V1"],["E50","T2"],["T2","F2"],["T2","T8"],["T6","T10"],["T4","T7"],["T1","T7"],["E54","T5"],["T5","T11"],["E53","T9"],["U1","T2"],["U2","U5"],["U3","E58"],["U5","E58"],["E58","U6"],["U6","E54"],["T2","U7"],["T2","U8"],["U7","U9"],["U9","F2"],["T2","U10"],["U10","F2"],["U4","E56"],["E58","G1"],["U2","G1"],["G1","G3"],["E27","G7"],["E25","G8"],["G4","G6"],["E50","G9"],["E44","L1"],["L2","L4"],["L2","E52"],["L1","L3"],["L3","E54"],["E54","L6"],["L6","L9"],["L3","L8"],["L5","E62"],["E62","L10"],["L4","E55"],["E53","R1"],["R3","T9"],["R3","R7"],["R9","R7"],["R7","R10"],["R2","R4"],["E62","L7"],["I3","I4"],["I1","I3"],["T6","I5"],["R5","I6"],["I6","R10"]];
+const W=1100,GUT=170,LW=184;
+const ys=d3.scaleLinear().domain([1840,1900,1945,1960,1975,1990,2000,2012]).range([70,430,970,1240,1910,2180,2410,2530]);
+const svg=d3.select("#tm");
+const PER=[["Early Victorian",1840,1860],["High Victorian",1860,1900],["Edwardian & pre-war",1900,1918],["Post-WW1: 1920s",1918,1930],["Inter-war: 1930s",1930,1940],["War & post-WW2",1940,1960],["1960s & 70s",1960,1980],["1980s: post-punk & acid house",1980,1990],["1990s: rave & underground cinema",1990,2000],["2000s revivals",2000,2012]];
+PER.forEach((p,i)=>{const y0=ys(p[1]),y1=ys(p[2]);svg.append("rect").attr("class","band").attr("x",0).attr("y",y0).attr("width",W).attr("height",y1-y0).attr("opacity",i%2?0.35:0.75);
+ svg.append("text").attr("class","per").attr("x",10).attr("y",y0+18).text(p[0]);svg.append("text").attr("class","ax").attr("x",10).attr("y",y0+34).text(p[1]+"–"+p[2]);});
+for(let yr=1850;yr<=2010;yr+=10){svg.append("text").attr("class","ax").attr("x",GUT-8).attr("y",ys(yr)+4).attr("text-anchor","end").text(yr);svg.append("line").attr("x1",GUT-4).attr("x2",W).attr("y1",ys(yr)).attr("y2",ys(yr)).attr("stroke","var(--border)").attr("stroke-width",0.5);}
+LN.forEach((l,i)=>svg.append("text").attr("class","lh").attr("x",GUT+i*LW+10).attr("y",30).attr("fill",l[2]).text(l[1]));
+const nodes=EV.map(e=>({id:e[0],t:e[1],yr:e[2],l:e[3],pl:!!e[4],d:e[5],txt:e[6],x:GUT+LI[e[3]]*LW+18,y:ys(e[2])}));
+const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+const links=LK.map(k=>({a:byId[k[0]],b:byId[k[1]]}));
+const LG=svg.append("g"),NG=svg.append("g"),cap=document.getElementById("cap");
+const lane=document.getElementById("lane");
+LN.forEach(l=>{const lb=document.createElement("label");lb.innerHTML=`<input type="checkbox" checked data-l="${l[0]}"><i style="background:${l[2]}"></i>${l[1]}`;lane.appendChild(lb);});
+lane.addEventListener("change",e=>{if(e.target.dataset.l){onL[e.target.dataset.l]=e.target.checked;draw();}});
+["realT","planT","linT"].forEach(id=>document.getElementById(id).onchange=draw);
+const sim=d3.forceSimulation(nodes).force("y",d3.forceY(d=>ys(d.yr)).strength(1)).force("x",d3.forceX(d=>GUT+LI[d.l]*LW+18).strength(0.35)).force("col",d3.forceCollide(11)).stop();
+for(let i=0;i<300;i++)sim.tick();
+nodes.forEach(d=>{const x0=GUT+LI[d.l]*LW+8;d.x=Math.max(x0,Math.min(x0+60,d.x));});
+function vis(d){return onL[d.l]&&((d.pl&&document.getElementById("planT").checked)||(!d.pl&&document.getElementById("realT").checked));}
+function pth(l){const mx=(l.a.x+l.b.x)/2+(Math.abs(l.a.x-l.b.x)<20?40:0),my=(l.a.y+l.b.y)/2;return `M${l.a.x},${l.a.y} Q${mx},${my} ${l.b.x},${l.b.y}`;}
+function show(d){cap.innerHTML=`<strong>${d.t}</strong> — ${d.d}${d.pl?" · planned / unrealised":""}<br>${d.txt}`;LG.selectAll("path").classed("on",l=>l.a===d||l.b===d);}
+function draw(){
+ const ln=document.getElementById("linT").checked;
+ LG.selectAll("path").data(links.filter(l=>ln&&vis(l.a)&&vis(l.b))).join("path").attr("class","lin").attr("d",pth);
+ const g=NG.selectAll("g.ev").data(nodes.filter(vis),d=>d.id).join(en=>{const g=en.append("g").attr("class","ev");
+   g.append("circle").attr("r",6.5).attr("fill",d=>d.pl?"var(--surface-1)":COL[d.l]).attr("stroke",d=>COL[d.l]).attr("stroke-width",d=>d.pl?2:1.5).attr("stroke-dasharray",d=>d.pl?"3 2":null).on("mouseenter click",(e,d)=>show(d));
+   g.append("text").attr("class",d=>d.pl?"ev pl":"ev").attr("x",11).attr("y",4).text(d=>d.t);
+   g.call(d3.drag().on("drag",(e,d)=>{const x0=GUT+LI[d.l]*LW+6;d.x=Math.max(x0,Math.min(x0+LW-40,e.x));d3.select(e.sourceEvent.target.closest("g")).attr("transform",`translate(${d.x},${d.y})`);LG.selectAll("path").attr("d",pth);}));
+   return g;});
+ g.attr("transform",d=>`translate(${d.x},${d.y})`);
+}
+draw();
+</script>
+</body>
+</html>

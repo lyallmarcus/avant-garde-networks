@@ -41,6 +41,26 @@ const LN=[["c","Light, colour & sound","#1D9E75"],["p","Projection & film shows"
 const LI=Object.fromEntries(LN.map((l,i)=>[l[0],i])),COL=Object.fromEntries(LN.map(l=>[l[0],l[2]]));
 const onL={};LN.forEach(l=>onL[l[0]]=true);
 const EV=[
+["N20","Greenaway's Tulse Luper VJ performance",2005.5,"p",0,"17 June 2005","Greenaway mixes his Tulse Luper films live on a touchscreen across 12 screens in Amsterdam, with DJ Radar; later at Optronica, London."],
+["N16","Heslop's Seven Songs for 23 Skidoo",1982.5,"p",0,"1982","Found footage with 8mm and 16mm film; released by Cabaret Voltaire's Doublevision."],
+["N17","The Last of England",1987.6,"p",0,"1987","Jarman's Super 8 lament, shot with Richard Heslop, Cerith Wyn Evans and Christopher Hughes; edited by John Maybury."],
+["N18","Oil Factory founded",1987.2,"p",0,"1987–2005","Music-video company started by Eurythmics; Richard Heslop among its directors."],
+["N19","Ebeneezer Goode video",1992.7,"x",0,"1992","Heslop's 16mm video for the Shamen, produced by Oil Factory."],
+["N13","Sun Ra Arkestra at Fondation Maeght",1970.6,"x",0,"1970","First European show: 19 musicians and dancers with elaborate film projections; Arkestra concerts combined costume, film, light and choreography."],
+["N14","Panic happenings",1962.6,"r",0,"1962–65","Jodorowsky, Arrabal and Topor's ritual 'panic' performances."],
+["N15","The Holy Mountain",1973.4,"r",0,"1973","Jodorowsky's film: Gurdjieffian Enneagram, Tarot de Marseille, cast trained with Ichazo's Arica exercises."],
+["N10","Gesang der Jünglinge",1956,"c",0,"1955–56","Stockhausen projects a boy's voice around five loudspeaker groups: spatial sound as performance."],
+["N11","Stockhausen's Licht",1977.5,"r",0,"1977–2003","Seven-opera cosmic cycle drawing on the Urantia Book and Aurobindo: Scriabin's Mysterium realised on another scripture."],
+["N12","Twin Peaks",1990.3,"p",0,"1990–91","Lynch and Frost's series; its White and Black Lodges come from Theosophical sources via Frost."],
+["N1","Thought-Forms published",1905,"c",0,"1905","Besant and Leadbeater's book of clairvoyant images: 58 colour plates, some showing music as coloured forms."],
+["N2","The Prometheans",1919.5,"c",0,"1919","Theosophists Claude Bragdon and Kirkpatrick Brice form the group that backs Thomas Wilfred's colour organ."],
+["N3","Kandinsky's Pictures at an Exhibition",1928.3,"c",0,"1928","Dessau staging of Mussorgsky with coloured light and a projected kaleidoscope: a live audiovisual piece."],
+["N4","Fischinger's Lumigraph",1953,"c",0,"1950s","Fischinger performs his colour-light instrument; Belson sees it in 1953."],
+["N5","Doodlin': Impressions of Len Lye",1987.5,"p",0,"1987","Keith Griffiths' Channel 4 documentary."],
+["N6","Four-Mations on Channel 4",1990.3,"p",0,"1990–98","Clare Kitson's animation strand, screening Fischinger, Lye, McLaren and new abstract work."],
+["N7","Oskar Fischinger: Visual Music",1992.5,"p",0,"1992","Keith Griffiths' Channel 4 documentary."],
+["N8","Abstract Cinema",1993.4,"p",0,"1993","Channel 4 documentary tracing abstraction from Fischinger and Lye to computer-programmed work."],
+["N9","Gibson & Recoder projector performances",2000.5,"p",0,"from c.2000","Installations and performances built from the optics and mechanics of film projection."],
 ["I1","Doublevision video label",1982.3,"p",0,"1982","Cabaret Voltaire and Paul Smith release videos by themselves, Throbbing Gristle, Neubauten, Clock DVA, 23 Skidoo and CTI."],
 ["I2","Laibach: We Forge the Future",1983.4,"p",0,"1983","Zagreb: 35mm footage of Yugoslav history projected with Super 8 loops over the concert."],
 ["I3","Test Dept: Program for Progress",1984.6,"x",0,"1984","Site-specific show at Cannon Street station; Brett Turnbull's slide and film projections."],
@@ -109,7 +129,7 @@ const EV=[
 ["E39","Rebay's Film Center",1945.2,"p",1,"mid-1940s","Film centre with planetarium projection, planned with Fischinger. Never realised."],
 ["E40","Deren at Provincetown Playhouse",1946.1,"p",0,"Feb 1946","Deren hires a theatre to show her own films."],
 ["E41","Art in Cinema begins",1946.7,"p",0,"1946","San Francisco Museum of Art series showing Fischinger, Smith, Belson and Anger."],
-["E42","Smith's films with live bebop",1950,"p",0,"c.1950","Smith projects his hand-painted films to live jazz, including at Jimbo's Bop City."],
+["E42","Smith's films with live bebop",1950,"p",0,"c.1950","Smith projects his hand-painted films to live jazz, including at Jimbo's Bop City; shows with Dizzy Gillespie (your info)."],
 ["E43","Fifteen Americans, MoMA",1952,"e",0,"1952","Wilfred's lumia shown alongside Pollock and Rothko."],
 ["E44","Vortex concerts",1957.4,"p",0,"1957–59","Belson and Jacobs at Morrison Planetarium: 38+ concerts."],
 ["E45","Poème électronique",1958.3,"c",0,"1958","Philips Pavilion, Brussels Expo: Varèse, Le Corbusier, Xenakis."],
@@ -175,7 +195,7 @@ const EV=[
 ["P4","Prometheus with light, Hamburg",2006.5,"c",0,"2006","Andrej Hoteev and the Hamburg Symphony Orchestra present the colour-light score, Laeiszhalle."],
 ["P5","Prometheus with light, Yale",2010.1,"c",0,"Feb 2010","Anna Gawboy's full production with clavier à lumières and hall lighting."]
 ];
-const LK=[["E1","E3"],["E2","E3"],["E2","E4"],["E5","E17"],["E5","E18"],["E6","E19"],["P1","E19"],["E18","E19"],["E19","E22"],["E19","P2"],["P2","P3"],["P3","P4"],["P4","P5"],["E13","E14"],["E14","E24"],["E22","E43"],["E43","E44"],["E21","E25"],["E21","E27"],["E26","E27"],["E23","E28"],["E27","E35"],["E27","E38"],["E38","E39"],["E38","E44"],["E44","E46"],["E44","E61"],["E61","E63"],["E29","E34"],["E40","E41"],["E25","E41"],["E41","E42"],["E42","E44"],["E42","E49"],["E49","E67"],["E44","E52"],["E51","E52"],["E52","E54"],["E54","E62"],["E55","E62"],["E50","E53"],["E58","E60"],["E56","E65"],["E45","E65"],["E8","E10"],["E11","E17"],["E9","E37"],["E33","E37"],["E37","E48"],["E9","E69"],["E4","E69"],["E57","E68"],["E36","E40"],["E25","F1"],["F1","F2"],["F2","V1"],["E69","V1"],["E44","V1"],["E43","V1"],["E50","T2"],["T2","F2"],["T2","T8"],["T6","T10"],["T4","T7"],["T1","T7"],["E54","T5"],["T5","T11"],["E53","T9"],["U1","T2"],["U2","U5"],["U3","E58"],["U5","E58"],["E58","U6"],["U6","E54"],["T2","U7"],["T2","U8"],["U7","U9"],["U9","F2"],["T2","U10"],["U10","F2"],["U4","E56"],["E58","G1"],["U2","G1"],["G1","G3"],["E27","G7"],["E25","G8"],["G4","G6"],["E50","G9"],["E44","L1"],["L2","L4"],["L2","E52"],["L1","L3"],["L3","E54"],["E54","L6"],["L6","L9"],["L3","L8"],["L5","E62"],["E62","L10"],["L4","E55"],["E53","R1"],["R3","T9"],["R3","R7"],["R9","R7"],["R7","R10"],["R2","R4"],["E62","L7"],["I3","I4"],["I1","I3"],["T6","I5"],["R5","I6"],["I6","R10"]];
+const LK=[["E1","E3"],["E2","E3"],["E2","E4"],["E5","E17"],["E5","E18"],["E6","E19"],["P1","E19"],["E18","E19"],["E19","E22"],["E19","P2"],["P2","P3"],["P3","P4"],["P4","P5"],["E13","E14"],["E14","E24"],["E22","E43"],["E43","E44"],["E21","E25"],["E21","E27"],["E26","E27"],["E23","E28"],["E27","E35"],["E27","E38"],["E38","E39"],["E38","E44"],["E44","E46"],["E44","E61"],["E61","E63"],["E29","E34"],["E40","E41"],["E25","E41"],["E41","E42"],["E42","E44"],["E42","E49"],["E49","E67"],["E44","E52"],["E51","E52"],["E52","E54"],["E54","E62"],["E55","E62"],["E50","E53"],["E58","E60"],["E56","E65"],["E45","E65"],["E8","E10"],["E11","E17"],["E9","E37"],["E33","E37"],["E37","E48"],["E9","E69"],["E4","E69"],["E57","E68"],["E36","E40"],["E25","F1"],["F1","F2"],["F2","V1"],["E69","V1"],["E44","V1"],["E43","V1"],["E50","T2"],["T2","F2"],["T2","T8"],["T6","T10"],["T4","T7"],["T1","T7"],["E54","T5"],["T5","T11"],["E53","T9"],["U1","T2"],["U2","U5"],["U3","E58"],["U5","E58"],["E58","U6"],["U6","E54"],["T2","U7"],["T2","U8"],["U7","U9"],["U9","F2"],["T2","U10"],["U10","F2"],["U4","E56"],["E58","G1"],["U2","G1"],["G1","G3"],["E27","G7"],["E25","G8"],["G4","G6"],["E50","G9"],["E44","L1"],["L2","L4"],["L2","E52"],["L1","L3"],["L3","E54"],["E54","L6"],["L6","L9"],["L3","L8"],["L5","E62"],["E62","L10"],["L4","E55"],["E53","R1"],["R3","T9"],["R3","R7"],["R9","R7"],["R7","R10"],["R2","R4"],["E62","L7"],["I3","I4"],["I1","I3"],["T6","I5"],["R5","I6"],["I6","R10"],["N1","E12"],["N1","E9"],["N1","E14"],["N2","E22"],["E14","N3"],["E23","N3"],["E38","N4"],["N4","E44"],["N5","N6"],["N6","N7"],["N7","N8"],["U8","N9"],["E18","N11"],["N10","E45"],["N10","N11"],["E18","N13"],["N14","N15"],["I1","N16"],["N16","N17"],["N18","N19"],["T2","N17"]];
 const W=1100,GUT=170,LW=184;
 const ys=d3.scaleLinear().domain([1840,1900,1945,1960,1975,1990,2000,2012]).range([70,430,970,1240,1910,2180,2410,2530]);
 const svg=d3.select("#tm");

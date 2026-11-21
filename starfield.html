@@ -36,6 +36,7 @@ svg text.ax{font-size:11px;fill:var(--text-secondary)}
 svg text.at{font-size:12.5px;font-weight:500;fill:var(--text-secondary)}
 svg circle.p{stroke:#fff;stroke-width:1;cursor:pointer}
 svg line.lk{stroke-linecap:round;pointer-events:visibleStroke;cursor:pointer}
+svg text.cl{font-size:12px;font-weight:600;cursor:pointer;paint-order:stroke;stroke:#fbfaf7;stroke-width:4px;stroke-linejoin:round;letter-spacing:.02em}
 #tip{position:fixed;pointer-events:none;background:rgba(31,30,28,.93);color:#fff;font-size:12px;padding:5px 8px;border-radius:6px;display:none;max-width:280px;line-height:1.35;z-index:9}
 @media (max-width:860px){#wrap{flex-direction:column}#side{width:auto;border-left:none;border-top:1px solid var(--border);padding:8px 0 0;position:static;max-height:none}}
 </style>
@@ -57,8 +58,9 @@ svg line.lk{stroke-linecap:round;pointer-events:visibleStroke;cursor:pointer}
 <div class="row"><b>Find</b><input type="text" id="q" list="names" placeholder="Name…" style="width:170px"><datalist id="names"></datalist>
  <b style="margin-left:6px">Names</b><select id="lbl"><option value="auto">grow as you zoom</option><option value="all">everyone</option><option value="none">only selected</option></select>
  <b style="margin-left:6px">Colour</b><select id="ac"><option value="cat">Category</option><option value="mav">Maven score</option></select>
- <label><input type="checkbox" id="alll"> All links (faint)</label>
+ <label><input type="checkbox" id="alll"> All links</label>
 </div>
+<div class="row"><b>Circles</b><label><input type="checkbox" id="circ" checked> Show circles &amp; movements</label><details id="cdet"><summary style="cursor:pointer">choose…</summary><div id="clist" style="display:flex;flex-wrap:wrap;gap:4px 12px;max-width:900px;padding:4px 0"></div></details></div>
 <div id="wrap">
  <div id="plot"><svg id="sv" width="100%"></svg>
   <div id="zoomui"><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button><button id="zfit" title="Reset zoom">⤢</button></div>
@@ -69,6 +71,7 @@ svg line.lk{stroke-linecap:round;pointer-events:visibleStroke;cursor:pointer}
 <div id="tip"></div>
 <script src="data.js"></script>
 <script src="years.js"></script>
+<script src="circles.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
 const {CAT,N,E,LAB}=window.NETDATA,YR=window.NETYEARS||{},KEYS=Object.keys(CAT);
@@ -131,7 +134,12 @@ function layout(){const m=$("mode").value;
 // ---------- camera: rotation, perspective, zoom, pan ----------
 const W=1000,H=720,CX=W/2,CY=H/2-10,SX=420,SY=285;
 const svg=d3.select("#sv").attr("viewBox",`0 0 ${W} ${H}`);
-const gA=svg.append("g"),gS=svg.append("g"),gL=svg.append("g"),gP=svg.append("g"),gT=svg.append("g");
+const gF=svg.append("defs").append("filter").attr("id","goo").attr("filterUnits","userSpaceOnUse").attr("x",-3000).attr("y",-3000).attr("width",7000).attr("height",7000);
+gF.append("feGaussianBlur").attr("in","SourceGraphic").attr("stdDeviation",9).attr("result","b");
+gF.append("feColorMatrix").attr("in","b").attr("mode","matrix").attr("values","1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9");
+const gA=svg.append("g"),gC=svg.append("g"),gS=svg.append("g"),gL=svg.append("g"),gP=svg.append("g"),gCT=svg.append("g"),gT=svg.append("g");
+const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2],on:true}));
+let selC=null;
 let yaw=0,pitch=0,spin=null,zk=1,zx=0,zy=0;
 function proj(x,y,z){const c=Math.cos(yaw),s=Math.sin(yaw),x1=x*c+z*s,z1=-x*s+z*c,cp=Math.cos(pitch),sp=Math.sin(pitch),y1=y*cp-z1*sp,d=y*sp+z1*cp;
  const per=(yaw||pitch)?1/(1-d*.22*Math.min(1,Math.abs(yaw)+Math.abs(pitch))):1; // perspective only when rotated
@@ -157,13 +165,24 @@ function draw(){
  // active-year bars
  if(time){const bars=nodes.filter(n=>$("spans").checked?(!trace||trace.has(n.id))&&(!sel||N2.has(n.id)):(sel&&N2.has(n.id)&&!trace)||(trace&&trace.has(n.id)));
   bars.forEach(n=>{const [a,b]=proj(TX(n.y0),n.Y,n.Z),[c,d]=proj(TX(n.y1),n.Y,n.Z);gS.append("line").attr("x1",a).attr("y1",b).attr("x2",c).attr("y2",d).attr("stroke",col(n)).attr("stroke-width",3).attr("stroke-linecap","round").attr("opacity",.28);});}
+ // circles: metaball blobs around members
+ gC.selectAll("*").remove();gCT.selectAll("*").remove();
+ if($("circ").checked){const R=Math.min(60,22*Math.sqrt(zk)),vis=new Set(nodes.map(n=>n.id)),cbox=[];
+  CIRC.filter(c=>c.on).sort((a,b)=>(b===selC)-(a===selC)||b.mem.length-a.mem.length).forEach(c=>{const ms=c.mem.filter(m=>vis.has(m)).map(m=>byId[m]);if(ms.length<2)return;
+   const dim=(selC&&selC!==c)||(!selC&&sel)?.08:selC===c?.34:.2;
+   const g=gC.append("g").attr("opacity",dim).append("g").attr("filter","url(#goo)");
+   ms.forEach(n=>g.append("circle").attr("cx",n.sx).attr("cy",n.sy).attr("r",R).attr("fill",c.col));
+   const cx=d3.mean(ms,n=>n.sx),cy=d3.min(ms,n=>n.sy)-R*.55,w=c.name.length*6.6,box=[cx-w/2,cy-12,cx+w/2,cy+3];
+   if(selC!==c&&cbox.some(o=>box[0]<o[2]&&box[2]>o[0]&&box[1]<o[3]&&box[3]>o[1]))return;cbox.push(box);
+   gCT.append("text").attr("class","cl").attr("x",cx).attr("y",cy).attr("text-anchor","middle").attr("fill",c.col)
+    .attr("opacity",selC&&selC!==c?.25:sel&&!selC?.35:.95).text(c.name).on("click",e=>{e.stopPropagation();pickCircle(c);});});}
  // links
  const hot=l=>(sel&&!trace&&(l.s===sel.id||l.t===sel.id))||(trace&&l.tr);
  const L=links.filter(l=>hot(l)||(showAll&&(!trace||trace.has(l.s)&&trace.has(l.t))));
  gL.selectAll("line.lk").data(L,l=>l.s+"|"+l.t+"|"+l.k).join("line").attr("class","lk")
   .attr("x1",l=>byId[l.s].sx).attr("y1",l=>byId[l.s].sy).attr("x2",l=>byId[l.t].sx).attr("y2",l=>byId[l.t].sy)
-  .attr("stroke",l=>hot(l)?"#3d3a35":"#9a978f").attr("stroke-width",l=>hot(l)?1.5:.6).attr("stroke-opacity",l=>hot(l)?.7:.18)
-  .attr("stroke-dasharray",l=>l.k==="g"?"6 4":l.k==="i"?"1.5 4":null)
+  .attr("stroke",l=>hot(l)?"#2b2926":"#7d7a72").attr("stroke-width",l=>hot(l)?2.2:1).attr("stroke-opacity",l=>hot(l)?.9:.42)
+  .attr("stroke-dasharray",l=>l.k==="g"?"7 4":l.k==="i"?"2 3":null)
   .on("mousemove",(e,l)=>tipShow(e,`<b>${l.s} — ${l.t}</b><br>${KIND[l.k]}${l.yr?" · "+l.yr:""}: ${l.txt}`)).on("mouseleave",tipHide);
  // points, back to front
  const pts=gP.selectAll("circle.p").data(nodes,d=>d.id).join(en=>en.append("circle").attr("class","p")
@@ -201,7 +220,12 @@ function doTrace(dir){ // +1 forward: step to people whose activity centres late
 
 // ---------- side panel ----------
 const side=$("side");
-function select(n){sel=n||null;trace=null;links.forEach(l=>l.tr=false);render();panel();}
+function select(n){sel=n||null;selC=null;trace=null;links.forEach(l=>l.tr=false);render();panel();}
+function pickCircle(c){sel=null;selC=c;const ms=new Set(c.mem.filter(m=>byId[m]&&on[byId[m].g]));trace=ms;links.forEach(l=>l.tr=ms.has(l.s)&&ms.has(l.t));render();
+ side.innerHTML=`<h2 style="color:${c.col}">${c.name}</h2><div class="meta">${ms.size} members · links inside the circle shown</div>
+ ${[...ms].map(m=>byId[m]).sort((a,b)=>a.ym-b.ym).map(n=>`<div class="c"><a data-id="${n.id.replace(/"/g,"&quot;")}">${n.id}</a> <span>· ${n.y0}–${n.y1}</span></div>`).join("")}
+ <button id="clr">Clear</button>`;
+ side.querySelectorAll("a[data-id]").forEach(a=>a.onclick=()=>{const m=byId[a.dataset.id];if(m)select(m);});$("clr").onclick=()=>select(null);}
 function panel(){
  if(!sel){side.innerHTML=`<h2>Top mavens</h2><div class="meta">People most often on the shortest route between figures active 30+ years apart, given the links ticked above.</div>
   ${topM.map((n,i)=>`<div class="c">${i+1}. <a data-id="${n.id.replace(/"/g,"&quot;")}">${n.id}</a> <span>· ${n.y0}–${n.y1} · ${d3.format(".0%")(n.mav)}</span></div>`).join("")}
@@ -224,7 +248,9 @@ KEYS.forEach(k=>{const lb=document.createElement("label");lb.innerHTML=`<input t
 lay.addEventListener("change",e=>{if(e.target.dataset.k){on[e.target.dataset.k]=e.target.checked;if(sel&&!on[sel.g])sel=null;compute();render();panel();}});
 ["kd","kg","ki"].forEach(id=>$(id).onchange=()=>{compute();trace=null;render();panel();});
 $("mode").onchange=()=>{layout();render();};
-["lbl","ac","alll","spans"].forEach(id=>$(id).onchange=render);
+["lbl","ac","alll","spans","circ"].forEach(id=>$(id).onchange=render);
+$("clist").innerHTML=CIRC.map((c,i)=>`<label><input type="checkbox" checked data-c="${i}"><i style="background:${c.col}"></i>${c.name}</label>`).join("");
+$("clist").addEventListener("change",e=>{if(e.target.dataset.c!==undefined){CIRC[+e.target.dataset.c].on=e.target.checked;render();}});
 $("names").innerHTML=all.map(n=>`<option value="${n.id.replace(/"/g,"&quot;")}">`).join("");
 $("q").onchange=e=>{const n=byId[e.target.value];if(!n)return;if(!on[n.g]){on[n.g]=true;lay.querySelector(`[data-k="${n.g}"]`).checked=true;compute();}select(n);flyTo(n);};
 function tween(to,ms){const f={yaw,pitch,zk,zx,zy},g=k=>k in to?to[k]:f[k];d3.transition().duration(ms).tween("v",()=>t=>{const e=d3.easeCubicInOut(t),L=k=>f[k]+(g(k)-f[k])*e;yaw=L("yaw");pitch=L("pitch");zk=L("zk");zx=L("zx");zy=L("zy");render();});}

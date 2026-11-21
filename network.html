@@ -15,6 +15,8 @@ h1{font-size:20px;font-weight:500;margin:0 0 6px}
 #net line{stroke:var(--text-secondary);cursor:pointer}
 #net line.on{stroke:var(--text-primary);stroke-opacity:1!important}
 #net circle{stroke:var(--surface-1);stroke-width:2;cursor:grab}
+#net circle.bl{stroke:none;cursor:default}
+#net text.cl{font-size:13px;font-weight:600;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;pointer-events:none}
 .row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-secondary);margin:4px 0}
 .row label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 .row i{width:10px;height:10px;border-radius:50%;display:inline-block}
@@ -29,10 +31,12 @@ h1{font-size:20px;font-weight:500;margin:0 0 6px}
 <label><input type="checkbox" checked disabled> Met / worked together (solid)</label>
 <label><input type="checkbox" id="gT" checked> Same group / corresponded / supported (dashed)</label>
 <label><input type="checkbox" id="iT" checked> Influence only (dotted)</label>
+<label><input type="checkbox" id="cT" checked> Circles &amp; movements (blobs)</label>
 </div>
 <div id="cap">Hover or tap a line to see the link. Drag people sideways within their period.</div>
 <svg id="net" width="100%" viewBox="0 0 1000 3340"></svg>
 <script src="data.js"></script>
+<script src="circles.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
 const {CAT,N,E}=window.NETDATA;
@@ -45,11 +49,15 @@ const byId=Object.fromEntries(all.map(n=>[n.id,n]));
 const allL=E.map(e=>({s:e[0],t:e[1],k:e[2],txt:e[3]}));
 const svg=d3.select("#net"),cap=document.getElementById("cap");
 BY.forEach((y,i)=>{svg.append("rect").attr("class","bg").attr("x",0).attr("y",y).attr("width",W).attr("height",BH[i]).attr("rx",12);svg.append("text").attr("class","band").attr("x",14).attr("y",y+22).text(LAB[i]);});
-const LG=svg.append("g"),NG=svg.append("g");
+const gF=svg.append("defs").append("filter").attr("id","goo").attr("filterUnits","userSpaceOnUse").attr("x",-500).attr("y",-500).attr("width",3000).attr("height",5000);
+gF.append("feGaussianBlur").attr("in","SourceGraphic").attr("stdDeviation",12).attr("result","b");
+gF.append("feColorMatrix").attr("in","b").attr("mode","matrix").attr("values","1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9");
+const CG=svg.append("g"),LG=svg.append("g"),NG=svg.append("g"),CT=svg.append("g");
+const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2]}));
 const lay=document.getElementById("lay");
 Object.entries(CAT).forEach(([k,[name,col]])=>{const lb=document.createElement("label");lb.innerHTML=`<input type="checkbox" checked data-k="${k}"><i style="background:${col}"></i>${name}`;lay.appendChild(lb);});
 lay.addEventListener("change",e=>{if(e.target.dataset.k){on[e.target.dataset.k]=e.target.checked;build();}});
-document.getElementById("gT").onchange=build;document.getElementById("iT").onchange=build;
+document.getElementById("cT").onchange=()=>{blobs();};document.getElementById("gT").onchange=build;document.getElementById("iT").onchange=build;
 const sim=d3.forceSimulation().force("charge",d3.forceManyBody().strength(-160)).force("collide",d3.forceCollide(d=>d.hub?32:24)).force("x",d3.forceX(W/2-50).strength(0.04)).force("y",d3.forceY(d=>TY[d.e]).strength(0.6));
 let lsel,gsel;
 function build(){
@@ -57,7 +65,7 @@ function build(){
  const nodes=all.filter(n=>on[n.g]);const vis=new Set(nodes.map(n=>n.id));
  const links=allL.filter(l=>vis.has(l.s)&&vis.has(l.t)&&(l.k==="d"||(l.k==="g"&&sg)||(l.k==="i"&&si))).map(l=>({source:byId[l.s],target:byId[l.t],k:l.k,txt:l.txt}));
  lsel=LG.selectAll("line").data(links,d=>d.source.id+"|"+d.target.id+"|"+d.k).join("line")
-  .attr("stroke-width",d=>d.k==="d"?1.9:1.3).attr("stroke-dasharray",d=>d.k==="g"?"6 5":d.k==="i"?"1 5":null).attr("stroke-linecap","round").attr("stroke-opacity",d=>d.k==="d"?0.8:0.55)
+  .attr("stroke-width",d=>d.k==="d"?2.2:1.8).attr("stroke-dasharray",d=>d.k==="g"?"7 4":d.k==="i"?"2 3.5":null).attr("stroke-linecap","round").attr("stroke-opacity",d=>d.k==="d"?0.9:0.8)
   .on("mouseenter click",function(e,d){lsel.classed("on",false);d3.select(this).classed("on",true);cap.textContent=d.source.id+" — "+d.target.id+": "+d.txt;});
  gsel=NG.selectAll("g.nd").data(nodes,d=>d.id).join(en=>{const g=en.append("g").attr("class","nd");
    g.append("circle").attr("r",d=>d.hub?11:7).attr("fill",d=>CAT[d.g][1]);
@@ -71,7 +79,16 @@ sim.on("tick",()=>{
  sim.nodes().forEach(d=>{d.x=Math.max(20,Math.min(W-150,d.x));d.y=Math.max(BY[d.e]+34,Math.min(BY[d.e]+BH[d.e]-12,d.y))});
  if(lsel)lsel.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
  if(gsel)gsel.attr("transform",d=>`translate(${d.x},${d.y})`);
+ if(++tk%3===0)blobs();
 });
+let tk=0;
+function blobs(){CG.selectAll("*").remove();CT.selectAll("*").remove();if(!document.getElementById("cT").checked)return;
+ const vis=new Set(sim.nodes().map(n=>n.id)),cbox=[];
+ CIRC.slice().sort((a,b)=>b.mem.length-a.mem.length).forEach(c=>{const ms=c.mem.filter(m=>vis.has(m)).map(m=>byId[m]).filter(n=>n.x!==undefined);if(ms.length<2)return;
+  const g=CG.append("g").attr("opacity",.18).append("g").attr("filter","url(#goo)");
+  ms.forEach(n=>g.append("circle").attr("class","bl").attr("cx",n.x).attr("cy",n.y).attr("r",30).attr("fill",c.col));
+  const cx=d3.mean(ms,n=>n.x),cy=d3.min(ms,n=>n.y)-24,w=c.name.length*7,box=[cx-w/2,cy-13,cx+w/2,cy+3];if(cbox.some(o=>box[0]<o[2]&&box[2]>o[0]&&box[1]<o[3]&&box[3]>o[1]))return;cbox.push(box);
+  CT.append("text").attr("class","cl").attr("x",cx).attr("y",cy).attr("text-anchor","middle").attr("fill",c.col).text(c.name);});}
 build();
 </script>
 </body>

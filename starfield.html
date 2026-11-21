@@ -57,10 +57,22 @@ svg text.cl{font-size:12px;font-weight:600;cursor:pointer;paint-order:stroke;str
 </div>
 <div class="row"><b>Find</b><input type="text" id="q" list="names" placeholder="Name…" style="width:170px"><datalist id="names"></datalist>
  <b style="margin-left:6px">Names</b><select id="lbl"><option value="auto">grow as you zoom</option><option value="all">everyone</option><option value="none">only selected</option></select>
- <b style="margin-left:6px">Colour</b><select id="ac"><option value="cat">Category</option><option value="mav">Maven score</option></select>
+ <b style="margin-left:6px">Colour</b><select id="ac"><option value="cat">Category</option><option value="eso">Esoteric involvement</option><option value="mav">Maven score</option></select>
  <label><input type="checkbox" id="alll"> All links</label>
 </div>
-<div class="row"><b>Circles</b><label><input type="checkbox" id="circ" checked> Show circles &amp; movements</label><details id="cdet"><summary style="cursor:pointer">choose…</summary><div id="clist" style="display:flex;flex-wrap:wrap;gap:4px 12px;max-width:900px;padding:4px 0"></div></details></div>
+<div class="row"><b>Circles</b><label><input type="checkbox" id="circ" checked> Show circles &amp; movements</label><details id="cdet"><summary style="cursor:pointer">choose…</summary><div id="clist" style="display:flex;flex-wrap:wrap;gap:4px 12px;max-width:900px;padding:4px 0"></div></details>
+ <details id="sty"><summary style="cursor:pointer">look…</summary><div style="display:flex;flex-wrap:wrap;gap:4px 16px;padding:4px 0">
+  <label>Shape <select id="s_mode"><option value="tree">joined (tree)</option><option value="hull">enclosing outline</option><option value="dots">separate dots</option></select></label>
+  <label>Size <input type="range" id="s_size" min="5" max="40" step="1"></label>
+  <label>Join width <input type="range" id="s_tube" min=".2" max="2" step=".05"></label>
+  <label>Fill <input type="range" id="s_fill" min="0" max=".6" step=".01"></label>
+  <label>Outline <input type="range" id="s_line" min="0" max="4" step=".2"></label>
+  <label>Softness <input type="range" id="s_soft" min="2" max="16" step=".5"></label>
+  <label>Strength <input type="range" id="s_vis" min=".2" max="1" step=".05"></label>
+  <label>Time stretch <input type="range" id="s_tx" min=".25" max="1.2" step=".05"></label>
+  <label>Perspective (left = stronger) <input type="range" id="s_persp" min="1.6" max="10" step=".2"></label>
+  <label>Fog <input type="range" id="s_fog" min="0" max=".95" step=".05"></label>
+  <code id="s_out" style="font-size:11px;color:#6b6a65"></code></div></details></div>
 <div id="wrap">
  <div id="plot"><svg id="sv" width="100%"></svg>
   <div id="zoomui"><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button><button id="zfit" title="Reset zoom">⤢</button></div>
@@ -72,20 +84,22 @@ svg text.cl{font-size:12px;font-weight:600;cursor:pointer;paint-order:stroke;str
 <script src="data.js"></script>
 <script src="years.js"></script>
 <script src="circles.js"></script>
+<script src="eso.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
 const {CAT,N,E,LAB}=window.NETDATA,YR=window.NETYEARS||{},KEYS=Object.keys(CAT);
 const KIND={d:"met / worked together",g:"same group / corresponded / supported",i:"influence"};
 const WT={d:1,g:1.6,i:2.6};          // path length per link type: shorter = closer
-const ERAMID=[1830,1880,1909,1925,1935,1950,1970,1990];
-const all=N.map(d=>{const y=YR&&YR[d[0]];const a=y?y[0]:ERAMID[d[2]]-5,b=y?Math.min(y[1],2000):ERAMID[d[2]]+5;return {id:d[0],g:d[1],e:d[2],hub:d[3]||0,y0:a,y1:b,ym:(a+b)/2,est:!y};});
+const ERAMID=[1830,1880,1909,1925,1935,1950,1970,1990,2012];
+const all=N.map(d=>{const y=YR&&YR[d[0]];const a=y?y[0]:ERAMID[d[2]]-5,b=y?Math.min(y[1],2025):ERAMID[d[2]]+5;return {id:d[0],g:d[1],e:d[2],hub:d[3]||0,y0:a,y1:b,ym:(a+b)/2,est:!y};});
 const byId=Object.fromEntries(all.map(n=>[n.id,n]));
-const spec=E.map(e=>{const m=(e[3]||"").match(/\b(1[6-9]\d\d|20[0-2]\d)\b/);return {s:e[0],t:e[1],k:e[2],txt:e[3],yr:m?+m[1]:null};});
+const GE=window.groupEdges?window.groupEdges(YR):[];
+const spec=E.concat(GE).map(e=>{const m=(e[3]||"").match(/\b(1[6-9]\d\d|20[0-2]\d)\b/);return {s:e[0],t:e[1],k:e[2],txt:e[3],yr:m?+m[1]:null,grp:e[4]||null};});
 const on={};KEYS.forEach(k=>on[k]=true);
 let sel=null,trace=null,links=[],nodes=[],adj={},topM=[];
 const $=id=>document.getElementById(id);
 // time axis: piecewise, giving more room to the busier later decades
-const TX=d3.scaleLinear().domain([1700,1840,1900,1945,2000]).range([-1,-.88,-.52,-.04,1]).clamp(true);
+const TX=d3.scaleLinear().domain([1700,1840,1900,1945,2000,2025]).range([-1,-.88,-.55,-.1,.8,1]).clamp(true);
 
 // ---------- maths ----------
 class Heap{constructor(){this.a=[];}get size(){return this.a.length;}push(x){const a=this.a;a.push(x);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(a[p][0]<=a[i][0])break;[a[p],a[i]]=[a[i],a[p]];i=p;}}
@@ -135,25 +149,44 @@ function layout(){const m=$("mode").value;
 const W=1000,H=720,CX=W/2,CY=H/2-10,SX=420,SY=285;
 const svg=d3.select("#sv").attr("viewBox",`0 0 ${W} ${H}`);
 const gF=svg.append("defs").append("filter").attr("id","goo").attr("filterUnits","userSpaceOnUse").attr("x",-3000).attr("y",-3000).attr("width",7000).attr("height",7000);
-gF.append("feGaussianBlur").attr("in","SourceGraphic").attr("stdDeviation",9).attr("result","b");
-gF.append("feColorMatrix").attr("in","b").attr("mode","matrix").attr("values","1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9");
+// blob look: tweak live from the "Blob style" panel
+const ST={size:14,tube:1.1,fill:.17,line:1.6,soft:7,mode:"tree",vis:.8,tx:.6,persp:3,fog:.75};
+const fB=gF.append("feGaussianBlur").attr("in","SourceGraphic").attr("result","b");
+gF.append("feColorMatrix").attr("in","b").attr("mode","matrix").attr("values","1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9").attr("result","goo");
+const fE=gF.append("feMorphology").attr("in","goo").attr("operator","erode").attr("result","er");
+gF.append("feComposite").attr("in","goo").attr("in2","er").attr("operator","out").attr("result","ring");
+const fA=gF.append("feComponentTransfer").attr("in","goo").attr("result","fill").append("feFuncA").attr("type","linear");
+const gM=gF.append("feMerge");gM.append("feMergeNode").attr("in","fill");gM.append("feMergeNode").attr("in","ring");
+function setFilter(){fB.attr("stdDeviation",ST.soft);fE.attr("radius",ST.line);fA.attr("slope",ST.fill);}setFilter();
+// minimum spanning tree over screen points: joins a scene's members into one connected shape
+function mst(P){const n=P.length,inT=new Array(n).fill(false),d=new Array(n).fill(Infinity),par=new Array(n).fill(-1),E=[];d[0]=0;
+ for(let k=0;k<n;k++){let u=-1;for(let i=0;i<n;i++)if(!inT[i]&&(u<0||d[i]<d[u]))u=i;inT[u]=true;if(par[u]>=0)E.push([P[par[u]],P[u]]);
+  for(let v=0;v<n;v++)if(!inT[v]){const dd=Math.hypot(P[u][0]-P[v][0],P[u][1]-P[v][1]);if(dd<d[v]){d[v]=dd;par[v]=u;}}}return E;}
+function hull(P){if(P.length<3)return P;const h=d3.polygonHull(P);return h||P;}
 const gA=svg.append("g"),gC=svg.append("g"),gS=svg.append("g"),gL=svg.append("g"),gP=svg.append("g"),gCT=svg.append("g"),gT=svg.append("g");
-const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2],on:true}));
+const KINDS={order:"Orders & societies",movement:"Movements",scene:"Scenes",venue:"Venues & labels",show:"Screenings & festivals"},KON={order:1,movement:1,scene:1};
+const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2],kind:c[3]||"scene",on:!!KON[c[3]||"scene"]}));
 let selC=null;
+const MEM={};CIRC.forEach(c=>c.mem.forEach(m=>(MEM[m]=MEM[m]||[]).push(c)));
 let yaw=0,pitch=0,spin=null,zk=1,zx=0,zy=0;
-function proj(x,y,z){const c=Math.cos(yaw),s=Math.sin(yaw),x1=x*c+z*s,z1=-x*s+z*c,cp=Math.cos(pitch),sp=Math.sin(pitch),y1=y*cp-z1*sp,d=y*sp+z1*cp;
- const per=(yaw||pitch)?1/(1-d*.22*Math.min(1,Math.abs(yaw)+Math.abs(pitch))):1; // perspective only when rotated
+function proj(x,y,z){if($("mode").value==="time")x*=ST.tx;
+ const c=Math.cos(yaw),s=Math.sin(yaw),x1=x*c+z*s,z1=-x*s+z*c,cp=Math.cos(pitch),sp=Math.sin(pitch),y1=y*cp-z1*sp,d=y*sp+z1*cp;
+ const per=ST.persp/Math.max(.35,ST.persp-d); // perspective camera: nearer (d>0) draws larger
  return [CX+(x1*SX*per)*zk+zx,CY-(y1*SY*per)*zk+zy,d,per];}
 const mavCol=d3.scaleSequential(d3.interpolateYlOrRd).domain([-.15,1]);
-function col(n){return $("ac").value==="mav"?mavCol(n.mav):CAT[n.g][1];}
+const ESO=window.NETESO||{};
+function esoCol(id){const e=ESO[id];return !e?"#cfccc4":e[0]===2?"#6B2C91":e[2]?"#dcc3e8":"#b07cc6";}
+function col(n){const v=$("ac").value;return v==="mav"?mavCol(n.mav):v==="eso"?esoCol(n.id):CAT[n.g][1];}
 function nb(){const s=new Set();if(sel){s.add(sel.id);links.forEach(l=>{if(l.s===sel.id)s.add(l.t);if(l.t===sel.id)s.add(l.s);});}return s;}
 function rad(n){return (3+Math.sqrt(n.mav)*12)*n.per*Math.pow(zk,.35);}
 let raf=null;function render(){if(!raf)raf=requestAnimationFrame(()=>{raf=null;draw();});}
 function draw(){
  nodes.forEach(n=>{const [x,y,d,p]=proj(n.X,n.Y,n.Z);n.sx=x;n.sy=y;n.dp=d;n.per=p;});
+ const [d0,d1]=d3.extent(nodes,n=>n.dp);nodes.forEach(n=>{n.near=d1>d0?(n.dp-d0)/(d1-d0):1;n.fg=1-ST.fog*(1-n.near);});
+ const fs=n=>Math.max(7,Math.min(22,11*Math.pow(n.per,1.6)));
  gA.selectAll("*").remove();gS.selectAll("*").remove();
  const time=$("mode").value==="time";
- if(time){const ticks=[1750,1800,1850,1875,1900,1920,1940,1950,1960,1970,1980,1990,2000];
+ if(time){const ticks=[1800,1850,1875,1900,1920,1940,1950,1960,1970,1980,1990,2000,2010,2020];
   ticks.forEach(t=>{const x=TX(t),[a1,b1]=proj(x,-1.1,0),[a2,b2]=proj(x,1.1,0);
    gA.append("line").attr("x1",a1).attr("y1",b1).attr("x2",a2).attr("y2",b2).attr("stroke","#e6e3da").attr("stroke-dasharray","3 4");
    gA.append("text").attr("class","ax").attr("x",a1).attr("y",b1+14).attr("text-anchor","middle").text(t);});
@@ -167,10 +200,13 @@ function draw(){
   bars.forEach(n=>{const [a,b]=proj(TX(n.y0),n.Y,n.Z),[c,d]=proj(TX(n.y1),n.Y,n.Z);gS.append("line").attr("x1",a).attr("y1",b).attr("x2",c).attr("y2",d).attr("stroke",col(n)).attr("stroke-width",3).attr("stroke-linecap","round").attr("opacity",.28);});}
  // circles: metaball blobs around members
  gC.selectAll("*").remove();gCT.selectAll("*").remove();
- if($("circ").checked){const R=Math.min(60,22*Math.sqrt(zk)),vis=new Set(nodes.map(n=>n.id)),cbox=[];
+ if($("circ").checked){const R=Math.min(60,ST.size*Math.sqrt(zk)),vis=new Set(nodes.map(n=>n.id)),cbox=[];
   CIRC.filter(c=>c.on).sort((a,b)=>(b===selC)-(a===selC)||b.mem.length-a.mem.length).forEach(c=>{const ms=c.mem.filter(m=>vis.has(m)).map(m=>byId[m]);if(ms.length<2)return;
-   const dim=(selC&&selC!==c)||(!selC&&sel)?.08:selC===c?.34:.2;
+   const dim=(selC&&selC!==c)?.12:(!selC&&sel)?(ms.includes(sel)?1:.15):selC===c?1:ST.vis;
    const g=gC.append("g").attr("opacity",dim).append("g").attr("filter","url(#goo)");
+   const P=ms.map(n=>[n.sx,n.sy]);
+   if(ST.mode==="hull"&&P.length>2)g.append("path").attr("d","M"+hull(P).join("L")+"Z").attr("fill",c.col).attr("stroke",c.col).attr("stroke-width",R*2).attr("stroke-linejoin","round");
+   else if(ST.mode==="tree")mst(P).forEach(([a,b])=>g.append("line").attr("x1",a[0]).attr("y1",a[1]).attr("x2",b[0]).attr("y2",b[1]).attr("stroke",c.col).attr("stroke-width",R*ST.tube).attr("stroke-linecap","round"));
    ms.forEach(n=>g.append("circle").attr("cx",n.sx).attr("cy",n.sy).attr("r",R).attr("fill",c.col));
    const cx=d3.mean(ms,n=>n.sx),cy=d3.min(ms,n=>n.sy)-R*.55,w=c.name.length*6.6,box=[cx-w/2,cy-12,cx+w/2,cy+3];
    if(selC!==c&&cbox.some(o=>box[0]<o[2]&&box[2]>o[0]&&box[1]<o[3]&&box[3]>o[1]))return;cbox.push(box);
@@ -178,18 +214,18 @@ function draw(){
     .attr("opacity",selC&&selC!==c?.25:sel&&!selC?.35:.95).text(c.name).on("click",e=>{e.stopPropagation();pickCircle(c);});});}
  // links
  const hot=l=>(sel&&!trace&&(l.s===sel.id||l.t===sel.id))||(trace&&l.tr);
- const L=links.filter(l=>hot(l)||(showAll&&(!trace||trace.has(l.s)&&trace.has(l.t))));
+ const L=links.filter(l=>hot(l)||(showAll&&!l.grp&&(!trace||trace.has(l.s)&&trace.has(l.t))));
  gL.selectAll("line.lk").data(L,l=>l.s+"|"+l.t+"|"+l.k).join("line").attr("class","lk")
   .attr("x1",l=>byId[l.s].sx).attr("y1",l=>byId[l.s].sy).attr("x2",l=>byId[l.t].sx).attr("y2",l=>byId[l.t].sy)
-  .attr("stroke",l=>hot(l)?"#2b2926":"#7d7a72").attr("stroke-width",l=>hot(l)?2.2:1).attr("stroke-opacity",l=>hot(l)?.9:.42)
+  .attr("stroke",l=>hot(l)?"#2b2926":"#7d7a72").attr("stroke-width",l=>(hot(l)?2.2:1)*Math.sqrt((byId[l.s].per+byId[l.t].per)/2)).attr("stroke-opacity",l=>(hot(l)?.9:.42)*(byId[l.s].fg+byId[l.t].fg)/2)
   .attr("stroke-dasharray",l=>l.k==="g"?"7 4":l.k==="i"?"2 3":null)
   .on("mousemove",(e,l)=>tipShow(e,`<b>${l.s} — ${l.t}</b><br>${KIND[l.k]}${l.yr?" · "+l.yr:""}: ${l.txt}`)).on("mouseleave",tipHide);
  // points, back to front
  const pts=gP.selectAll("circle.p").data(nodes,d=>d.id).join(en=>en.append("circle").attr("class","p")
-   .on("mousemove",(e,d)=>tipShow(e,`<b>${d.id}</b><br>${CAT[d.g][0]}<br>Active ${d.y0}–${d.y1}${d.est?" (estimated)":""}<br>Connections ${d.deg} · links span ${d.reach} years<br>Maven score ${d3.format(".0%")(d.mav)}`))
+   .on("mousemove",(e,d)=>tipShow(e,`<b>${d.id}</b><br>${CAT[d.g][0]}<br>Active ${d.y0}–${d.y1}${d.est?" (estimated)":""}<br>Connections ${d.deg} · links span ${d.reach} years<br>Maven score ${d3.format(".0%")(d.mav)}${ESO[d.id]?"<br>Esoteric: "+["","interest","member / practitioner"][ESO[d.id][0]]+" — "+ESO[d.id][1]+(ESO[d.id][2]?" (borderline)":""):""}${MEM[d.id]?"<br>Scenes: "+MEM[d.id].map(c=>c.name).join(", "):""}`))
    .on("mouseleave",tipHide).on("click",(e,d)=>{e.stopPropagation();if(moved>4)return;select(d);}).on("dblclick",(e,d)=>{e.stopPropagation();select(d);flyTo(d);}));
  pts.attr("cx",d=>d.sx).attr("cy",d=>d.sy).attr("r",rad).attr("fill",col)
-  .attr("opacity",d=>{if(trace)return trace.has(d.id)?1:.08;if(sel)return N2.has(d.id)?1:.14;return .9;})
+  .attr("opacity",d=>{if(trace)return trace.has(d.id)?Math.max(.45,d.fg):.08;if(sel)return N2.has(d.id)?Math.max(.45,d.fg):.14;return .95*d.fg;})
   .attr("stroke",d=>d===sel?"#1f1e1c":"#fff").attr("stroke-width",d=>d===sel?2.5:1);
  pts.sort((a,b)=>a.dp-b.dp);
  // labels: priority by maven score, skip overlaps, more appear as you zoom
@@ -200,12 +236,13 @@ function draw(){
  else if(m==="none")cand=[];
  else if(m==="all")cand=nodes;
  else{const thr=zk<1.3?0.2:zk<2?0.06:zk<3?0.01:-1;cand=nodes.filter(n=>top.has(n.id)||n.mav>thr);}
- cand=cand.filter(n=>n.sx>-50&&n.sx<W+50&&n.sy>-20&&n.sy<H+20).sort((a,b)=>(b===sel)-(a===sel)||b.mav-a.mav);
+ cand=cand.filter(n=>n.sx>-50&&n.sx<W+50&&n.sy>-20&&n.sy<H+20).sort((a,b)=>(b===sel)-(a===sel)||(b.mav+.4*b.near)-(a.mav+.4*a.near));
  const boxes=[],show=[],force=m==="all"&&!trace&&!sel;
- for(const n of cand){const w=n.id.length*6.1,x=n.sx+rad(n)+3,y=n.sy-7,b=[x,y,x+w,y+13];
+ for(const n of cand){const f=fs(n),w=n.id.length*f*.56,x=n.sx+rad(n)+3,y=n.sy-f*.65,b=[x,y,x+w,y+f*1.15];
   if(force||!boxes.some(o=>b[0]<o[2]&&b[2]>o[0]&&b[1]<o[3]&&b[3]>o[1])){boxes.push(b);show.push(n);}}
  gT.selectAll("text.lb").data(show,d=>d.id).join("text").attr("class",d=>"lb"+(top.has(d.id)?" mv":""))
-  .attr("x",d=>d.sx+rad(d)+3).attr("y",d=>d.sy+4).text(d=>d.id);
+  .attr("x",d=>d.sx+rad(d)+3).attr("y",d=>d.sy+fs(d)*.36).text(d=>d.id)
+  .style("font-size",d=>fs(d).toFixed(1)+"px").attr("opacity",d=>(trace||sel)?Math.max(.55,d.fg):Math.max(.18,d.fg)).sort((a,b)=>a.dp-b.dp);
 }
 const tip=$("tip");function tipShow(e,h){tip.style.display="block";tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";tip.innerHTML=h;}function tipHide(){tip.style.display="none";}
 
@@ -234,12 +271,15 @@ function panel(){
   const rank=topM.indexOf(sel);
   side.innerHTML=`<h2>${sel.id}</h2><div class="meta"><span style="color:${CAT[sel.g][1]}">●</span> ${CAT[sel.g][0]} · active ${sel.y0}–${sel.y1}${sel.est?" (estimated)":""}</div>
   <div class="stat"><span>Connections</span><b>${sel.deg}</b></div><div class="stat"><span>Their links span</span><b>${sel.reach} years</b></div>
+  ${MEM[sel.id]?`<div class="c"><span>Scenes:</span> ${MEM[sel.id].map(c=>`<a data-c="${CIRC.indexOf(c)}" style="color:${c.col};font-weight:600;border-bottom-color:${c.col}">${c.name}</a>`).join(", ")}</div>`:""}
+  <div class="stat"><span>Esoteric involvement</span><b style="color:${esoCol(sel.id)==="#cfccc4"?"#6b6a65":esoCol(sel.id)}">${ESO[sel.id]?["","interest","member / practitioner"][ESO[sel.id][0]]+(ESO[sel.id][2]?" (borderline)":""):"none known"}</b></div>${ESO[sel.id]?`<div class="note">${ESO[sel.id][1]}</div>`:""}
   <div class="stat"><span>Maven score</span><b>${d3.format(".0%")(sel.mav)}${rank>=0?` (#${rank+1})`:""}</b></div>
   <button id="tf">Trace forward in time →</button><button id="tb">← Trace back</button><button id="fly">Zoom to</button><button id="clr">Clear</button>
   <div class="note" id="trinfo"></div><h3>Connections, in date order</h3>
   ${mine.map(l=>{const o=l.s===sel.id?l.t:l.s,on2=byId[o];return `<div class="c">${l.k==="d"?"●":l.k==="g"?"◌":"·"} <a data-id="${o.replace(/"/g,"&quot;")}">${o}</a> <span>(${l.yr?l.yr:on2.y0+"–"+on2.y1})</span><br><span>${l.txt}</span></div>`;}).join("")}`;
   $("tf").onclick=()=>doTrace(1);$("tb").onclick=()=>doTrace(-1);$("clr").onclick=()=>select(null);$("fly").onclick=()=>flyTo(sel);}
  side.querySelectorAll("a[data-id]").forEach(a=>a.onclick=()=>{const m=byId[a.dataset.id];if(m&&on[m.g])select(m);});
+ side.querySelectorAll("a[data-c]").forEach(a=>a.onclick=()=>pickCircle(CIRC[+a.dataset.c]));
 }
 
 // ---------- controls ----------
@@ -249,7 +289,9 @@ lay.addEventListener("change",e=>{if(e.target.dataset.k){on[e.target.dataset.k]=
 ["kd","kg","ki"].forEach(id=>$(id).onchange=()=>{compute();trace=null;render();panel();});
 $("mode").onchange=()=>{layout();render();};
 ["lbl","ac","alll","spans","circ"].forEach(id=>$(id).onchange=render);
-$("clist").innerHTML=CIRC.map((c,i)=>`<label><input type="checkbox" checked data-c="${i}"><i style="background:${c.col}"></i>${c.name}</label>`).join("");
+$("clist").innerHTML=Object.entries(KINDS).map(([k,lab])=>`<div style="flex-basis:100%;font-weight:500;color:#1f1e1c;margin-top:4px">${lab}</div>`+CIRC.map((c,i)=>c.kind!==k?"":`<label><input type="checkbox" ${c.on?"checked":""} data-c="${i}"><i style="background:${c.col}"></i>${c.name}</label>`).join("")).join("");
+["mode","size","tube","fill","line","soft","vis","tx","persp","fog"].forEach(k=>{const el=$("s_"+k);el.value=ST[k];el.oninput=()=>{ST[k]=k==="mode"?el.value:+el.value;setFilter();$("s_out").textContent=JSON.stringify(ST);render();};});
+$("s_out").textContent=JSON.stringify(ST);
 $("clist").addEventListener("change",e=>{if(e.target.dataset.c!==undefined){CIRC[+e.target.dataset.c].on=e.target.checked;render();}});
 $("names").innerHTML=all.map(n=>`<option value="${n.id.replace(/"/g,"&quot;")}">`).join("");
 $("q").onchange=e=>{const n=byId[e.target.value];if(!n)return;if(!on[n.g]){on[n.g]=true;lay.querySelector(`[data-k="${n.g}"]`).checked=true;compute();}select(n);flyTo(n);};

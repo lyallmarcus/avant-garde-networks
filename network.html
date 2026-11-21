@@ -32,31 +32,39 @@ h1{font-size:20px;font-weight:500;margin:0 0 6px}
 <label><input type="checkbox" id="gT" checked> Same group / corresponded / supported (dashed)</label>
 <label><input type="checkbox" id="iT" checked> Influence only (dotted)</label>
 <label><input type="checkbox" id="cT" checked> Circles &amp; movements (blobs)</label>
+<label><input type="checkbox" id="eT"> Colour by esoteric involvement</label>
 </div>
 <div id="cap">Hover or tap a line to see the link. Drag people sideways within their period.</div>
 <svg id="net" width="100%" viewBox="0 0 1000 3340"></svg>
 <script src="data.js"></script>
+<script src="years.js"></script>
 <script src="circles.js"></script>
+<script src="eso.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
 const {CAT,N,E}=window.NETDATA;
 const on={};Object.keys(CAT).forEach(k=>on[k]=true);
-const BH=[130,330,320,270,280,460,800,690],LAB=["Precursors & early Victorian (to 1860)","High Victorian (1860–1900)","Edwardian & pre-war (1900–1918)","Post-WW1: the 1920s","Inter-war: the 1930s","War & post-WW2: 1940s–50s","1960s & 70s","1980s & 90s: post-punk, industrial & rave"];
+const BH=[130,340,340,280,300,500,860,760,360],LAB=window.NETDATA.LAB;
 const BY=[];let yy=20;BH.forEach(h=>{BY.push(yy);yy+=h+12;});
 const TY=BY.map((y,i)=>y+BH[i]/2+12),W=1000;
+d3.select("#net").attr("viewBox",`0 0 1000 ${yy+10}`);
 const all=N.map(d=>({id:d[0],g:d[1],e:d[2],hub:d[3]||0}));
 const byId=Object.fromEntries(all.map(n=>[n.id,n]));
-const allL=E.map(e=>({s:e[0],t:e[1],k:e[2],txt:e[3]}));
+const YR=window.NETYEARS||{},GE=window.groupEdges?window.groupEdges(YR):[];
+const allL=E.concat(GE).map(e=>({s:e[0],t:e[1],k:e[2],txt:e[3],grp:e[4]||null}));
 const svg=d3.select("#net"),cap=document.getElementById("cap");
 BY.forEach((y,i)=>{svg.append("rect").attr("class","bg").attr("x",0).attr("y",y).attr("width",W).attr("height",BH[i]).attr("rx",12);svg.append("text").attr("class","band").attr("x",14).attr("y",y+22).text(LAB[i]);});
 const gF=svg.append("defs").append("filter").attr("id","goo").attr("filterUnits","userSpaceOnUse").attr("x",-500).attr("y",-500).attr("width",3000).attr("height",5000);
 gF.append("feGaussianBlur").attr("in","SourceGraphic").attr("stdDeviation",12).attr("result","b");
 gF.append("feColorMatrix").attr("in","b").attr("mode","matrix").attr("values","1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9");
 const CG=svg.append("g"),LG=svg.append("g"),NG=svg.append("g"),CT=svg.append("g");
-const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2]}));
+const KON={order:1,movement:1,scene:1};
+const CIRC=(window.NETCIRCLES||[]).map(c=>({name:c[0],col:c[1],mem:c[2],kind:c[3]||"scene"})).filter(c=>KON[c.kind]);
 const lay=document.getElementById("lay");
 Object.entries(CAT).forEach(([k,[name,col]])=>{const lb=document.createElement("label");lb.innerHTML=`<input type="checkbox" checked data-k="${k}"><i style="background:${col}"></i>${name}`;lay.appendChild(lb);});
 lay.addEventListener("change",e=>{if(e.target.dataset.k){on[e.target.dataset.k]=e.target.checked;build();}});
+const ESO=window.NETESO||{};function fillOf(d){if(!document.getElementById("eT").checked)return CAT[d.g][1];const e=ESO[d.id];return !e?"#cfccc4":e[0]===2?"#6B2C91":e[2]?"#dcc3e8":"#b07cc6";}
+document.getElementById("eT").onchange=()=>NG.selectAll("circle.pt").attr("fill",fillOf);
 document.getElementById("cT").onchange=()=>{blobs();};document.getElementById("gT").onchange=build;document.getElementById("iT").onchange=build;
 const sim=d3.forceSimulation().force("charge",d3.forceManyBody().strength(-160)).force("collide",d3.forceCollide(d=>d.hub?32:24)).force("x",d3.forceX(W/2-50).strength(0.04)).force("y",d3.forceY(d=>TY[d.e]).strength(0.6));
 let lsel,gsel;
@@ -64,15 +72,15 @@ function build(){
  const sg=document.getElementById("gT").checked,si=document.getElementById("iT").checked;
  const nodes=all.filter(n=>on[n.g]);const vis=new Set(nodes.map(n=>n.id));
  const links=allL.filter(l=>vis.has(l.s)&&vis.has(l.t)&&(l.k==="d"||(l.k==="g"&&sg)||(l.k==="i"&&si))).map(l=>({source:byId[l.s],target:byId[l.t],k:l.k,txt:l.txt}));
- lsel=LG.selectAll("line").data(links,d=>d.source.id+"|"+d.target.id+"|"+d.k).join("line")
+ lsel=LG.selectAll("line").data(links.filter(l=>!l.grp),d=>d.source.id+"|"+d.target.id+"|"+d.k).join("line")
   .attr("stroke-width",d=>d.k==="d"?2.2:1.8).attr("stroke-dasharray",d=>d.k==="g"?"7 4":d.k==="i"?"2 3.5":null).attr("stroke-linecap","round").attr("stroke-opacity",d=>d.k==="d"?0.9:0.8)
   .on("mouseenter click",function(e,d){lsel.classed("on",false);d3.select(this).classed("on",true);cap.textContent=d.source.id+" — "+d.target.id+": "+d.txt;});
  gsel=NG.selectAll("g.nd").data(nodes,d=>d.id).join(en=>{const g=en.append("g").attr("class","nd");
-   g.append("circle").attr("r",d=>d.hub?11:7).attr("fill",d=>CAT[d.g][1]);
+   g.append("circle").attr("class","pt").attr("r",d=>d.hub?11:7).attr("fill",fillOf);
    g.append("text").attr("class",d=>d.hub?"n hub":"n").attr("x",d=>d.hub?15:10).attr("y",4).text(d=>d.id);
    g.call(d3.drag().on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y})
     .on("drag",(e,d)=>{d.fx=e.x;d.fy=Math.max(BY[d.e]+32,Math.min(BY[d.e]+BH[d.e]-12,e.y))}).on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));return g;});
- sim.nodes(nodes).force("link",d3.forceLink(links).distance(d=>d.k==="d"?60:d.k==="g"?85:110).strength(d=>d.k==="d"?0.5:d.k==="g"?0.12:0.03));
+ sim.nodes(nodes).force("link",d3.forceLink(links).distance(d=>d.grp?95:d.k==="d"?60:d.k==="g"?85:110).strength(d=>d.grp?0.02:d.k==="d"?0.5:d.k==="g"?0.12:0.03));
  sim.alpha(0.8).restart();
 }
 sim.on("tick",()=>{

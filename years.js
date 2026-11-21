@@ -280,5 +280,19 @@ window.NETYEARS={
 "23 Skidoo":[1979,1986],
 "Chris & Cosey (CTI)":[1981,2000],
 "Neville Brody":[1978,2000],
-"Laibach / NSK":[1980,2000]
+"Laibach / NSK":[1980,2000],
+"Thought-Forms (book, 1905)":[1905,1905],
+"Luigi Russolo":[1909,1947],
+"Roy de Maistre":[1918,1968],
+"Prometheans":[1919,1923],
+"Kirkpatrick Brice":[1919,1923],
+"Ludwig Hirschfeld-Mack":[1919,1965],
+"Charles Dockum":[1936,1977],
+"Sun Ra":[1952,1993],
+"Four-Mations (Channel 4)":[1990,1998],
+"Clare Kitson":[1989,1999],
+"Keith Griffiths":[1980,2000],
+"Robert Darroll":[1975,2000],
+"Sandra Gibson & Luis Recoder":[1998,2000],
+"Bradley Eros":[1985,2000]
 };

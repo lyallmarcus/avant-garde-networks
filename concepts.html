@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas map: Theosophy, the occult and AV performance</title>
+<style>
+:root{--text-primary:#1f1e1c;--text-secondary:#6b6a65;--surface-1:#ffffff;--bg-neutral:#f1efe8;--border:#d3d1c7}
+body{margin:0;padding:12px 16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--surface-1);color:var(--text-primary)}
+h1{font-size:20px;font-weight:500;margin:0 0 2px}
+.sub{font-size:13px;color:var(--text-secondary);margin-bottom:6px;max-width:980px;line-height:1.45}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-secondary);margin:5px 0;align-items:center}
+.row label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+.row b{font-weight:500;color:var(--text-primary);margin-right:2px}
+select,button{font:inherit;font-size:13px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-primary)}
+button{cursor:pointer;background:var(--bg-neutral)}
+#wrap{display:flex;gap:14px;align-items:flex-start}
+#plot{flex:1;min-width:0;position:relative;border:1px solid var(--bg-neutral);border-radius:10px;overflow-x:auto;background:#fbfaf7}
+#sv{display:block}
+#side{width:330px;flex:none;font-size:13px;position:sticky;top:8px;max-height:95vh;overflow:auto;border-left:1px solid var(--border);padding-left:12px;line-height:1.4}
+#side h2{font-size:16px;font-weight:500;margin:0 0 2px}
+#side h3{font-size:13px;font-weight:500;margin:12px 0 3px}
+#side .meta{color:var(--text-secondary);margin:2px 0 6px}
+#side .c{padding:4px 0;border-top:1px solid var(--bg-neutral)}
+#side a{color:var(--text-primary);cursor:pointer;border-bottom:1px dotted #999;text-decoration:none}
+#side a.ext{color:#2f6db5;border-bottom-color:#9db6dd}
+#side .note,#side .c span{color:var(--text-secondary)}
+#side .badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:12px;margin:2px 0 4px}
+#side .verdict{background:var(--bg-neutral);border-radius:8px;padding:8px 10px;margin:6px 0}
+#side ol{margin:4px 0 4px 18px;padding:0}#side li{margin:3px 0}
+.key{display:flex;align-items:center;gap:6px;margin:2px 0}
+.key i{width:11px;height:11px;border-radius:50%;display:inline-block;flex:none;border:1px solid rgba(0,0,0,.15)}
+.key svg{flex:none}
+svg text.lab{font-size:11px;fill:var(--text-primary);paint-order:stroke;stroke:#fbfaf7;stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+svg text.lab.post{font-weight:600;font-size:11.5px}
+svg text.lane{font-size:12px;font-weight:600;letter-spacing:.02em}
+svg text.yr{font-size:10.5px;fill:var(--text-secondary)}
+svg g.nd{cursor:pointer}
+svg path.lk{fill:none;stroke-linecap:round}
+#tip{position:fixed;pointer-events:none;background:rgba(31,30,28,.94);color:#fff;font-size:12px;padding:6px 9px;border-radius:6px;display:none;max-width:320px;line-height:1.4;z-index:9}
+nav{font-size:12.5px;margin-bottom:6px;color:var(--text-secondary)}nav a{color:var(--text-secondary)}
+svg g.num circle{fill:#1f1e1c}svg g.num text{fill:#fff;font-size:10.5px;font-weight:600;text-anchor:middle;pointer-events:none}
+#side .step{display:flex;gap:8px;align-items:baseline;padding:5px 0 2px;border-top:1px solid var(--bg-neutral)}
+#side .step .n{flex:none;width:19px;height:19px;border-radius:50%;background:#1f1e1c;color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+#side .how{margin:2px 0 4px 27px;padding:4px 8px;border-left:3px solid #ccc;background:#faf9f5;border-radius:0 6px 6px 0}
+#side .how .srcs{margin-top:3px;font-size:12px}#side .how .srcs a{display:inline-block;margin-right:8px}
+.ev{display:inline-block;font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:9px;margin-right:4px}
+.ev-k{background:#d8efe4;color:#0f5b3c}.ev-w{background:#dceaf8;color:#1d4f86}.ev-d{background:#ece9df;color:#4a4842}.ev-c{background:#f1efe8;color:#6b6a65}.ev-p{background:#f1efe8;color:#8a8780}.ev-x{background:#f8e1da;color:#9a3417}
+#side .how.k{border-left-color:#1D9E75}#side .how.w{border-left-color:#2f6db5}#side .how.d{border-left-color:#8a8780}
+#side .finder select{width:100%;margin:3px 0 6px}#side .finder button{margin-top:4px}
+#pres{position:fixed;inset:0;background:#fbfaf7;z-index:20;display:flex;flex-direction:column;padding:22px 40px 18px;box-sizing:border-box}
+#pres[hidden]{display:none}
+#pres .pbar{display:flex;align-items:center;gap:14px;font-size:14px;color:var(--text-secondary)}#pres .pbar #ptitle{flex:1;font-weight:500;color:var(--text-primary)}
+#pres #pbody{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1100px;margin:0 auto;width:100%}
+#pres .big{font-size:40px;font-weight:500;line-height:1.15;margin:0 0 14px}
+#pres .q{font-size:22px;color:var(--text-secondary);line-height:1.4}
+#pres .card{border-left:8px solid #999;padding:12px 18px;background:#fff;border-radius:0 10px 10px 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#pres .card .lab{font-size:30px;font-weight:500;line-height:1.2}#pres .card .yr{font-size:18px;color:var(--text-secondary);margin-top:4px}
+#pres .card .nt{font-size:16px;color:var(--text-secondary);margin-top:8px;line-height:1.45}
+#pres .arrow{margin:16px 0 16px 34px;padding:10px 18px;border-left:4px solid #1D9E75;font-size:21px;line-height:1.45}
+#pres .arrow .ev{font-size:15px;padding:3px 10px;margin-bottom:6px}
+#pres .psrc{font-size:14px;margin-top:6px}#pres .psrc a{color:#2f6db5;margin-right:12px}
+#pres .verdict{font-size:22px;line-height:1.5;background:var(--bg-neutral);border-radius:12px;padding:18px 22px}
+#pstrip{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+#pstrip span{font-size:13px;padding:4px 10px;border-radius:14px;background:var(--bg-neutral);color:var(--text-secondary)}
+#pstrip span.on{background:#1f1e1c;color:#fff}#pstrip i{color:#aaa;font-style:normal;align-self:center}
+#pres .pnav{display:flex;justify-content:space-between;align-items:center}#pres .pnav button{font-size:16px;padding:6px 16px}
+#pres .hint{font-size:12px;color:var(--text-secondary)}
+@media (max-width:900px){#wrap{flex-direction:column}#side{width:auto;border-left:none;border-top:1px solid var(--border);padding:8px 0 0;position:static;max-height:none}}
+</style>
+</head>
+<body>
+<nav><a href="network.html">Network</a> · <a href="starfield.html">Proximity through time</a> · <a href="timeline.html">Events timeline</a> · <b>Ideas map</b></nav>
+<h1>Ideas map: Theosophy, the occult and AV performance</h1>
+<div class="sub">Spiritualism, Theosophy and the magical orders sit in the middle band as <b>marker posts</b>: places where older ideas were gathered, crystallised and passed on. Time runs left to right. Each idea, form or movement is coloured (optionally) by how much Theosophy or the occult shaped it, and each link is drawn by the strength of its evidence. Click anything to trace its lineage; choose a strand to see one question answered.</div>
+<div class="row">
+ <b>Strand</b><select id="strand"><option value="">All ideas</option></select>
+ <b style="margin-left:6px">Colour</b><select id="col"><option value="role">By Theosophy's role</option><option value="lane">By lane</option></select>
+ <b style="margin-left:6px">Size</b><button id="zout" title="Smaller">−</button><button id="zin" title="Larger">+</button><button id="zfit" title="Fit to window">Fit</button>
+</div>
+<div class="row"><b>Proof chain</b><select id="chain"><option value="">None</option></select><button id="present" disabled title="Step through the chain full screen">Present ▶</button>
+ <b style="margin-left:6px">Evidence</b><select id="ev"><option value="all">All links</option><option value="d">Documented links only</option><option value="k">First-hand contact only</option></select></div>
+<div class="row" id="types"><b>Links</b></div>
+<div id="wrap">
+ <div id="plot"><svg id="sv"></svg></div>
+ <div id="side"></div>
+</div>
+<div id="tip"></div>
+<div id="pres" hidden><div class="pbar"><span id="ptitle"></span><span id="pcount"></span><button id="pfull">Full screen</button><button id="pclose">Close ✕</button></div>
+ <div id="pbody"></div><div id="pstrip"></div>
+ <div class="pnav"><button id="pprev">← Back</button><span class="hint">Arrow keys or space to move · Esc to close</span><button id="pnext">Next →</button></div></div>
+<script src="concepts-core.js"></script>
+<script src="concepts-nodes.js"></script>
+<script src="concepts-links.js"></script>
+<script src="concepts-chains.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const C=window.CONCEPTS,LANES=C.LANES,ROLE=C.ROLE,TYPES=C.TYPES,S=C.S;
+const laneOf=Object.fromEntries(LANES.map(l=>[l[0],l]));
+const nodes=C.N.map(d=>({id:d[0],label:d[1],lane:d[2],yr:d[3],role:d[4],note:d[5],src:d[6]||[]}));
+const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+const links=C.E.map(e=>({s:byId[e[0]],t:byId[e[1]],k:e[2],note:e[3],m:e[4]||"",src:e[5]||[]})).filter(l=>l.s&&l.t);
+const CHAINS=C.CHAINS||[],fh=l=>l.k==="d"&&(l.m==="k"||l.m==="w");
+const $=id=>document.getElementById(id);
+const onT={d:true,c:true,p:true,x:true};
+let sel=null,strand=null,chain=null,finder=null;
+
+// ---------- layout: time across, lanes down, labels packed into rows ----------
+const X0=40,xs=d3.scaleLinear().domain([1580,1700,1800,1840,1880,1920,1950,1980,2000,2025]).range([0,50,110,200,430,740,920,1140,1270,1370].map(v=>v+X0));
+const lw=n=>n.label.length*(n.lane==="post"?6.4:5.95)+16,ROWH=21;
+let y=34;const band={};
+LANES.forEach(([k])=>{const ns=nodes.filter(n=>n.lane===k).sort((a,b)=>a.yr-b.yr),rows=[];
+ ns.forEach(n=>{n.x=xs(n.yr);let r=rows.findIndex(e=>e<=n.x-8);if(r<0){r=rows.length;rows.push(0);}rows[r]=n.x+lw(n);n.row=r;});
+ const h=Math.max(1,rows.length)*ROWH+40;band[k]=[y,h];ns.forEach(n=>n.y=y+34+n.row*ROWH);y+=h+6;});
+const W=Math.ceil(d3.max(nodes,n=>n.x+lw(n))+20),H=y+6;
+const svg=d3.select("#sv").attr("viewBox",`0 0 ${W} ${H}`),root=svg.append("g");
+let zk=1;function setZoom(k){zk=Math.max(.5,Math.min(2,k));svg.attr("width",Math.round(W*zk)).attr("height",Math.round(H*zk));}
+setZoom(Math.max(.75,Math.min(1,($("plot").clientWidth-2)/W)));
+// lanes and years
+const gB=root.append("g"),gY=root.append("g"),gL=root.append("g"),gM=root.append("g"),gN=root.append("g"),gNum=root.append("g");
+LANES.forEach(([k,lab,col],i)=>{const [y0,h]=band[k];
+ gB.append("rect").attr("x",0).attr("y",y0).attr("width",W).attr("height",h).attr("fill",k==="post"?"#f3eef8":i%2?"#f6f4ee":"#fbfaf7");
+ gB.append("text").attr("class","lane").attr("x",10).attr("y",y0+18).attr("fill",col).text(lab);});
+[1600,1700,1800,1850,1875,1900,1925,1950,1975,2000,2025].forEach(t=>{const x=xs(t);
+ gY.append("line").attr("x1",x).attr("x2",x).attr("y1",24).attr("y2",H).attr("stroke","#e4e1d8").attr("stroke-dasharray","3 4");
+ gY.append("text").attr("class","yr").attr("x",x).attr("y",16).attr("text-anchor","middle").text(t);});
+// links
+const path=l=>{const mx=(l.s.x+l.t.x)/2;return `M${l.s.x},${l.s.y} C${mx},${l.s.y} ${mx},${l.t.y} ${l.t.x},${l.t.y}`;};
+const lsel=gL.selectAll("path").data(links).join("path").attr("class","lk").attr("d",path)
+ .attr("stroke",l=>TYPES[l.k][1]).attr("stroke-dasharray",l=>TYPES[l.k][2]||null)
+ .on("mousemove",(e,l)=>tipShow(e,`<b>${l.s.label}</b> → <b>${l.t.label}</b><br>${TYPES[l.k][0]}: ${l.note}`)).on("mouseleave",tipHide);
+// first-hand contact markers: a dot at the middle of the link
+const msel=gM.selectAll("circle").data(links.filter(fh)).join("circle").attr("r",2.8).attr("cx",l=>(l.s.x+l.t.x)/2).attr("cy",l=>(l.s.y+l.t.y)/2).attr("fill","#1D9E75").attr("stroke","#fbfaf7").attr("stroke-width",1)
+ .on("mousemove",(e,l)=>tipShow(e,`<b>${l.s.label}</b> → <b>${l.t.label}</b><br>First-hand contact: ${l.note}`)).on("mouseleave",tipHide);
+// nodes
+const nsel=gN.selectAll("g.nd").data(nodes).join(en=>{const g=en.append("g").attr("class","nd").attr("transform",d=>`translate(${d.x},${d.y})`);
+ g.append("circle").attr("r",d=>d.lane==="post"?7:5.5);
+ g.append("text").attr("class",d=>"lab"+(d.lane==="post"?" post":"")).attr("x",d=>d.lane==="post"?11:9).attr("y",4).text(d=>d.label);
+ g.on("mousemove",(e,d)=>tipShow(e,`<b>${d.label}</b><br>${d.note}`)).on("mouseleave",tipHide)
+  .on("click",(e,d)=>{e.stopPropagation();select(sel===d?null:d);});return g;});
+svg.on("click",()=>select(null));
+// zoom: resize the drawing; scroll sideways to move along the timeline
+$("zin").onclick=()=>setZoom(zk*1.25);$("zout").onclick=()=>setZoom(zk/1.25);$("zfit").onclick=()=>setZoom(($("plot").clientWidth-2)/W);
+
+// ---------- colour, filtering, highlighting ----------
+function fill(n){if($("col").value==="role")return n.role?ROLE[n.role][1]:"#fff";return laneOf[n.lane][2];}
+function stroke(n){if($("col").value==="role"&&!n.role)return laneOf[n.lane][2];return "#fff";}
+const evOK=l=>{const v=$("ev").value;return v==="all"||(v==="d"?l.k==="d":fh(l));};
+const vis=l=>onT[l.k]&&evOK(l);
+function lineage(n){const up=new Set(),dn=new Set(),E=new Set(),q1=[n],q2=[n];
+ while(q1.length){const v=q1.pop();links.forEach(l=>{if(vis(l)&&l.t===v){E.add(l);if(!up.has(l.s)){up.add(l.s);q1.push(l.s);}}});}
+ while(q2.length){const v=q2.pop();links.forEach(l=>{if(vis(l)&&l.s===v){E.add(l);if(!dn.has(l.t)){dn.add(l.t);q2.push(l.t);}}});}
+ return {N:new Set([n,...up,...dn]),E};}
+function render(){let NS=null,ES=null;
+ if(chain){NS=new Set(chain.n.map(id=>byId[id]));ES=new Set(chain.steps);}
+ else if(sel){const L=lineage(sel);NS=L.N;ES=L.E;}
+ else if(strand){NS=new Set(strand.n.map(id=>byId[id]).filter(Boolean));ES=new Set(links.filter(l=>NS.has(l.s)&&NS.has(l.t)));}
+ nsel.select("circle").attr("fill",fill).attr("stroke",n=>n===sel?"#1f1e1c":stroke(n)).attr("stroke-width",n=>n===sel?2.5:n.lane==="post"?2:1.2);
+ nsel.attr("opacity",n=>!NS||NS.has(n)?1:.13);
+ lsel
+  .attr("stroke-opacity",l=>!ES?(l.k==="d"?.38:.3):ES.has(l)?.9:.035)
+  .attr("stroke-width",l=>!ES?1.1:ES.has(l)?(chain?3:(sel&&(l.s===sel||l.t===sel))?2.6:1.7):1);
+ lsel.attr("display",l=>(vis(l)||(chain&&ES.has(l)))?null:"none");
+ lsel.filter(l=>ES&&ES.has(l)).raise();
+ msel.attr("display",l=>(vis(l)||(chain&&ES.has(l)))?null:"none").attr("opacity",l=>!ES||ES.has(l)?1:.12).attr("r",l=>ES&&ES.has(l)?4:2.8);
+ gNum.selectAll("g").remove();
+ if(chain)chain.n.forEach((id,i)=>{const n=byId[id],g=gNum.append("g").attr("class","num").attr("transform",`translate(${n.x-15},${n.y})`);g.append("circle").attr("r",8.5);g.append("text").attr("y",3.8).text(i+1);});}
+const tip=$("tip");function tipShow(e,h){tip.style.display="block";const x=Math.min(e.clientX+14,window.innerWidth-340);tip.style.left=x+"px";tip.style.top=(e.clientY+14)+"px";tip.innerHTML=h;}function tipHide(){tip.style.display="none";}
+
+// ---------- side panel ----------
+const side=$("side"),esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+const sym={d:"—",c:"- -",p:"···",x:"✕"};
+function srcList(keys){return keys.filter(k=>S[k]).map(k=>`<div class="c"><a class="ext" href="${esc(S[k][1])}" target="_blank" rel="noopener">${esc(S[k][0])}</a></div>`).join("");}
+function nodeLink(n){return `<a data-id="${n.id}">${esc(n.label)}</a>`;}
+const yrTag=n=>/\b1[5-9]\d\d|20\d\d/.test(n.label)?"":` <span>(${n.yr})</span>`;
+function wire(){side.querySelectorAll("a[data-id]").forEach(a=>a.onclick=()=>select(byId[a.dataset.id]));side.querySelectorAll("a[data-s]").forEach(a=>a.onclick=()=>pickStrand(+a.dataset.s));
+ side.querySelectorAll("a[data-c]").forEach(a=>a.onclick=()=>pickChain(a.dataset.c));side.querySelectorAll("button[data-present]").forEach(b=>b.onclick=openPres);
+ if(finder&&$("ffrom")){$("ffrom").onchange=e=>{finder.from=e.target.value;finder.next="to";};$("fto").onchange=e=>{finder.to=e.target.value;};$("flev").onchange=e=>{finder.lev=e.target.value;};$("fgo").onclick=runFinder;}}
+function clearModes(){strand=null;chain=null;$("strand").value="";$("chain").value=finder?"find":"";$("present").disabled=true;}
+function select(n){
+ if(finder&&!chain&&n){if(finder.next==="from"){finder.from=n.id;finder.next="to";}else{finder.to=n.id;finder.next="from";}panel();return;}
+ sel=n||null;if(sel){finder=null;clearModes();}render();panel();}
+function pickStrand(i){finder=null;clearModes();strand=isNaN(i)?null:C.STRANDS[i];sel=null;$("strand").value=strand?i:"";render();panel();}
+function buildChain(ids,meta){const steps=[];for(let i=0;i<ids.length-1;i++){const l=links.find(x=>x.s.id===ids[i]&&x.t.id===ids[i+1]);if(!l)return null;steps.push(l);}return Object.assign({n:ids,steps},meta);}
+function pickChain(v){sel=null;strand=null;$("strand").value="";
+ if(v==="find"){finder=finder||{from:"",to:"",lev:"k",next:"from",msg:""};chain=null;}
+ else if(v===""||v==null){chain=null;finder=null;}
+ else{finder=null;const d=CHAINS[+v];chain=buildChain(d.n,{t:d.t,q:d.q,v:d.v,idx:+v});}
+ $("chain").value=chain&&!chain.custom?String(chain.idx):(finder?"find":"");$("present").disabled=!chain;render();panel();}
+// evidence of one step
+const evInfo=l=>l.k!=="d"?[l.k,TYPES[l.k][0]]:l.m==="k"?["k","First-hand: met, corresponded, worked together, taught or joined"]:l.m==="w"?["w","First-hand: saw it in person"]:["d","Documented: read, cited or adapted"];
+const evTag=l=>{const [c,t]=evInfo(l);return `<span class="ev ev-${c}">${esc(t)}</span>`;};
+function chainCount(ch){const c={k:0,w:0,d:0,o:0};ch.steps.forEach(l=>{const e=evInfo(l)[0];if(e in c)c[e]++;else c.o++;});
+ const parts=[];if(c.k+c.w)parts.push(`<span class="ev ev-k">${c.k+c.w} first-hand</span>`);if(c.d)parts.push(`<span class="ev ev-d">${c.d} documented</span>`);if(c.o)parts.push(`<span class="ev ev-c">${c.o} weaker</span>`);
+ return `${ch.steps.length} step${ch.steps.length>1?"s":""}: ${parts.join(" ")}`;}
+function stepSrc(l){const ks=l.src.length?l.src:[];return ks.length?`<div class="srcs">${ks.filter(k=>S[k]).map(k=>`<a class="ext" href="${esc(S[k][1])}" target="_blank" rel="noopener">${esc(S[k][0])}</a>`).join("")}</div>`:`<div class="srcs note">No source on this step yet: see each idea's sources.</div>`;}
+function chainPanel(){const ch=chain;let h=`<h2>${esc(ch.t)}</h2><div class="meta">${esc(ch.q)}</div><div style="margin:4px 0 8px">${chainCount(ch)}</div>`;
+ if(ch.v)h+=`<div class="verdict">${esc(ch.v)}</div>`;
+ h+=`<button data-present="1">Present this chain ▶</button>${ch.custom?` <a data-c="find">Back to the finder</a>`:""}<h3>Step by step</h3>`;
+ ch.n.forEach((id,i)=>{const n=byId[id];h+=`<div class="step"><span class="n">${i+1}</span><div>${nodeLink(n)}${yrTag(n)}</div></div>`;
+  if(i<ch.steps.length){const l=ch.steps[i];h+=`<div class="how ${evInfo(l)[0]}">${evTag(l)}<br>${esc(l.note)}${stepSrc(l)}</div>`;}});
+ h+=`<p class="note">Green steps are first-hand: the people met, wrote to each other, worked together, taught one another or joined the same group. Blue steps are first-hand sight of the work. Grey steps are documented but at a distance: a book read or adapted, a work seen. Click a name to see its own sources.</p>`;
+ side.innerHTML=h;}
+function nodeOpts(cur){return `<option value="">Choose…</option>`+nodes.slice().sort((a,b)=>a.yr-b.yr||a.label.localeCompare(b.label)).map(n=>`<option value="${n.id}"${n.id===cur?" selected":""}>${n.yr} · ${esc(n.label)}</option>`).join("");}
+function finderPanel(){const f=finder;side.innerHTML=`<h2>Find a chain</h2>
+ <div class="note">Choose a start and an end, or click two ideas on the map (first click sets From, second sets To). The finder returns the shortest chain that runs forward through links at the level you allow.</div>
+ <div class="finder"><h3>From</h3><select id="ffrom">${nodeOpts(f.from)}</select><h3>To</h3><select id="fto">${nodeOpts(f.to)}</select>
+ <h3>Links allowed</h3><select id="flev"><option value="k"${f.lev==="k"?" selected":""}>First-hand contact only</option><option value="d"${f.lev==="d"?" selected":""}>Documented links (first-hand or textual)</option><option value="c"${f.lev==="c"?" selected":""}>Also circumstantial links</option></select>
+ <button id="fgo">Find chain</button></div>${f.msg?`<div class="verdict">${f.msg}</div>`:""}
+ <h3>Ready-made chains</h3>${CHAINS.map((c,i)=>`<div class="c"><a data-c="${i}">${esc(c.t)}</a></div>`).join("")}`;}
+function okLev(l,lev){return lev==="k"?fh(l):lev==="d"?l.k==="d":(l.k==="d"||l.k==="c");}
+function findPath(a,b,lev){const prev=new Map([[a,null]]),q=[a];while(q.length){const v=q.shift();if(v===b)break;links.forEach(l=>{if(l.s.id===v&&okLev(l,lev)&&!prev.has(l.t.id)){prev.set(l.t.id,v);q.push(l.t.id);}});}
+ if(!prev.has(b))return null;const out=[];for(let v=b;v!=null;v=prev.get(v))out.unshift(v);return out;}
+function runFinder(){const f=finder,LV={k:"first-hand contact",d:"documented links",c:"documented or circumstantial links"};
+ if(!f.from||!f.to||f.from===f.to){f.msg="Choose two different ideas.";panel();return;}
+ const p=findPath(f.from,f.to,f.lev);
+ if(!p){const looser=f.lev==="k"&&findPath(f.from,f.to,"d")?" A chain exists through documented links: try that level.":f.lev!=="c"&&findPath(f.from,f.to,"c")?" A chain exists if circumstantial links are allowed.":" The map may be missing a step, or the influence may run the other way.";
+  f.msg=`No chain from ${esc(byId[f.from].label)} to ${esc(byId[f.to].label)} using ${LV[f.lev]} only.${looser}`;panel();return;}
+ f.msg="";chain=buildChain(p,{t:`${byId[f.from].label} → ${byId[f.to].label}`,q:`Shortest chain through ${LV[f.lev]}, found by the chain finder.`,v:"",custom:true});
+ $("present").disabled=false;render();panel();}
+function panel(){
+ if(chain){chainPanel();wire();return;}
+ if(finder){finderPanel();wire();return;}
+ if(sel){const n=sel,inn=links.filter(l=>l.t===n&&vis(l)).sort((a,b)=>a.s.yr-b.s.yr),out=links.filter(l=>l.s===n&&vis(l)).sort((a,b)=>a.t.yr-b.t.yr);
+  const strands=C.STRANDS.map((s,i)=>[s,i]).filter(([s])=>s.n.includes(n.id));
+  side.innerHTML=`<h2>${esc(n.label)}</h2><div class="meta"><span style="color:${laneOf[n.lane][2]}">●</span> ${esc(laneOf[n.lane][1])} · ${n.yr}</div>
+  ${n.role?`<span class="badge" style="background:${ROLE[n.role][1]};color:${n.role==="origin"?"#fff":"#1f1e1c"}">${ROLE[n.role][0]}</span>`:""}
+  <div>${esc(n.note)}</div>
+  ${inn.length?`<h3>Comes from</h3>`+inn.map(l=>`<div class="c">${sym[l.k]} ${nodeLink(l.s)}${yrTag(l.s)}<br><span>${esc(TYPES[l.k][0])}: ${esc(l.note)}</span></div>`).join(""):""}
+  ${out.length?`<h3>Leads to</h3>`+out.map(l=>`<div class="c">${sym[l.k]} ${nodeLink(l.t)}${yrTag(l.t)}<br><span>${esc(TYPES[l.k][0])}: ${esc(l.note)}</span></div>`).join(""):""}
+  ${strands.length?`<h3>In strands</h3>`+strands.map(([s,i])=>`<div class="c"><a data-s="${i}">${esc(s.t)}</a></div>`).join(""):""}
+  ${n.src.length?`<h3>Sources</h3>`+srcList(n.src):""}
+  <p class="note">The whole lineage is highlighted: everything upstream and downstream through the link types ticked above. Click empty space to clear.</p>`;}
+ else if(strand){const ns=strand.n.map(id=>byId[id]).filter(Boolean).sort((a,b)=>a.yr-b.yr);
+  side.innerHTML=`<h2>${esc(strand.t)}</h2><div class="meta">${esc(strand.q)}</div><div class="verdict">${esc(strand.v)}</div>
+  <h3>In this strand</h3>${ns.map(n=>`<div class="c">${n.role?`<span style="color:${ROLE[n.role][1]}">●</span> `:""}${nodeLink(n)}${yrTag(n)}</div>`).join("")}`;}
+ else{side.innerHTML=`<h2>Reading the map</h2>
+  <div class="note">Hover for a summary, click to trace a lineage, or pick a strand. Scroll sideways along the timeline; the Size buttons resize the map.</div>
+  <h3>Theosophy's role (node colour)</h3>${Object.values(ROLE).map(([t,c])=>`<div class="key"><i style="background:${c}"></i>${t}</div>`).join("")}
+  <div class="key"><i style="background:#fff;border-color:#8a8780"></i>Source or marker post (not graded)</div>
+  <h3>Links</h3>${Object.entries(TYPES).map(([k,[t,c,da]])=>`<div class="key"><svg width="28" height="8"><line x1="1" y1="4" x2="27" y2="4" stroke="${c}" stroke-width="2" stroke-dasharray="${da}"/></svg>${t}</div>`).join("")}
+  <div class="key"><svg width="28" height="8"><line x1="1" y1="4" x2="27" y2="4" stroke="#2b2926" stroke-width="2"/><circle cx="14" cy="4" r="3" fill="#1D9E75"/></svg>First-hand contact: met, corresponded, worked together, taught or joined</div>
+  <h3>Proof chains</h3><div class="note">Ordered chains of people and events, each step graded and sourced, ready to present. Set Evidence to "First-hand contact only" to see just the links where the people actually met.</div>
+  ${CHAINS.map((c,i)=>`<div class="c"><a data-c="${i}">${esc(c.t)}</a><br><span>${esc(c.q)}</span></div>`).join("")}<div class="c"><a data-c="find">Find a chain between any two ideas…</a></div>
+  <h3>Strands</h3>${C.STRANDS.map((s,i)=>`<div class="c"><a data-s="${i}">${esc(s.t)}</a><br><span>${esc(s.q)}</span></div>`).join("")}
+  <h3>Is the approach sound?</h3>
+  <div>Yes, as long as it keeps five safeguards:</div>
+  <ol><li><b>Grade the evidence.</b> Someone reading, joining, meeting or citing is a different thing from a shared milieu or a family resemblance.</li>
+  <li><b>Check for common sources.</b> Theosophy and abstract film both drew on popular physics, Asian religion and Romantic correspondences. Convergence is not descent.</li>
+  <li><b>Look for counter-cases.</b> The London Co-op used projectors to break illusion, not to reach the spirit, and stage magic grew up exposing the séance.</li>
+  <li><b>Watch the hindsight.</b> The Theosophy-to-abstraction story was largely assembled by Ringbom (1966) and LACMA's The Spiritual in Art (1986), and artists' own myths (Scriabin's synaesthesia) need checking.</li>
+  <li><b>Expect diffusion after 1960.</b> Ideas then circulate as 'occulture', so single lines of descent become hard to prove and circumstantial links multiply.</li></ol>
+  <div class="note">Notes marked (from memory) still need a source. The data lives in concepts-nodes.js (ideas), concepts-links.js (links) and concepts-chains.js (proof chains and strands), with sources in concepts-core.js: add a node with its lane and year, add links with a type, and it appears in place.</div>`;}
+ wire();}
+
+// ---------- controls ----------
+$("strand").innerHTML+=C.STRANDS.map((s,i)=>`<option value="${i}">${esc(s.t)}</option>`).join("");
+$("strand").onchange=e=>pickStrand(e.target.value===""?NaN:+e.target.value);
+$("col").onchange=render;
+$("chain").innerHTML+=CHAINS.map((c,i)=>`<option value="${i}">${esc(c.t)}</option>`).join("")+`<option value="find">Find a chain…</option>`;
+$("chain").onchange=e=>pickChain(e.target.value);
+$("ev").onchange=()=>{render();panel();};
+$("present").onclick=openPres;
+// ---------- presentation mode ----------
+let pi=0;const pres=$("pres");
+function pcard(n,full){return `<div class="card" style="border-left-color:${laneOf[n.lane][2]}"><div class="lab">${esc(n.label)}</div><div class="yr">${n.yr} · ${esc(laneOf[n.lane][1])}</div>${full?`<div class="nt">${esc(n.note)}</div>`:""}</div>`;}
+function showSlide(){const ch=chain,k=ch.steps.length,tot=k+2;pi=Math.max(0,Math.min(tot-1,pi));let h="";
+ if(pi===0)h=`<div class="big">${esc(ch.t)}</div><div class="q">${esc(ch.q)}</div><div class="q" style="margin-top:22px">${chainCount(ch)}</div>`;
+ else if(pi<=k){const l=ch.steps[pi-1];h=pcard(l.s,pi===1)+`<div class="arrow" style="border-left-color:${{k:"#1D9E75",w:"#2f6db5"}[evInfo(l)[0]]||"#8a8780"}">${evTag(l)}<br>${esc(l.note)}${l.src.length?`<div class="psrc">${l.src.filter(x=>S[x]).map(x=>`<a href="${esc(S[x][1])}" target="_blank" rel="noopener">${esc(S[x][0])}</a>`).join("")}</div>`:""}</div>`+pcard(l.t,true);}
+ else h=`<div class="big">What this chain shows</div><div class="verdict">${esc(ch.v||"Found by the chain finder. Check each step's sources before presenting it as proof.")}</div>`;
+ $("pbody").innerHTML=h;$("ptitle").textContent=ch.t;$("pcount").textContent=`${pi+1} / ${tot}`;
+ $("pstrip").innerHTML=ch.n.map((id,i)=>`<span class="${pi===tot-1||(pi>0&&pi<=k&&(i===pi-1||i===pi))?"on":""}">${i+1}. ${esc(byId[id].label.replace(/ \(.*$/,""))}</span>`).join("<i>→</i>");
+ $("pprev").disabled=pi===0;$("pnext").disabled=pi===tot-1;}
+function openPres(){if(!chain)return;pi=0;pres.hidden=false;showSlide();}
+function closePres(){pres.hidden=true;if(document.fullscreenElement)document.exitFullscreen();}
+$("pnext").onclick=()=>{pi++;showSlide();};$("pprev").onclick=()=>{pi--;showSlide();};$("pclose").onclick=closePres;
+$("pfull").onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else if(pres.requestFullscreen)pres.requestFullscreen();};
+document.addEventListener("keydown",e=>{if(pres.hidden)return;if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();pi++;showSlide();}else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();pi--;showSlide();}else if(e.key==="Escape")closePres();});
+Object.entries(TYPES).forEach(([k,[t,c,da]])=>{const lb=document.createElement("label");lb.innerHTML=`<input type="checkbox" checked data-k="${k}"><svg width="24" height="8"><line x1="1" y1="4" x2="23" y2="4" stroke="${c}" stroke-width="2" stroke-dasharray="${da}"/></svg>${t}`;$("types").appendChild(lb);});
+$("types").addEventListener("change",e=>{if(e.target.dataset.k){onT[e.target.dataset.k]=e.target.checked;render();panel();}});
+render();panel();
+</script>
+</body>
+</html>

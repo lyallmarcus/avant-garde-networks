@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proof chains: from the séance to the light show</title>
+<style>
+html,body{margin:0;height:100%;background:#ecE9e1;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f1e1c}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#fbfaf7;transform-origin:0 0;overflow:hidden}
+#top{position:absolute;left:80px;right:80px;top:34px;display:flex;justify-content:space-between;align-items:center}
+#kick{font-size:17px;letter-spacing:.12em;text-transform:uppercase;color:#8a8780}
+#kick a{color:#8a8780;text-decoration:none;border-bottom:1px dotted #b5b2a8;letter-spacing:0;text-transform:none;margin-left:14px}
+#ctl{display:flex;gap:10px;align-items:center}
+#ctl select,#ctl button{font:inherit;font-size:19px;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1f1e1c}
+#ctl select{max-width:640px}
+#ctl button{cursor:pointer;background:#f1efe8;min-width:46px}
+#ctl button:disabled{opacity:.35;cursor:default}
+#title{position:absolute;left:80px;right:80px;top:96px;font-size:46px;font-weight:600;line-height:1.1}
+#q{position:absolute;left:80px;right:80px;top:160px;font-size:25px;color:#6b6a65;line-height:1.35}
+#links{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
+.card{position:absolute;top:240px;height:302px;box-sizing:border-box;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.09);padding:0 20px 16px;overflow:hidden;transition:opacity .35s}
+.card .bar{height:9px;margin:0 -20px 14px}
+.card .tag{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#8a8780}
+.card .yr{font-size:24px;font-weight:600;margin-top:2px}
+.card .nm{font-size:27px;font-weight:600;line-height:1.15;margin:6px 0 8px}
+.card .ln{font-size:18px;line-height:1.38;color:#5d5c57}
+.lp{position:absolute;top:590px;box-sizing:border-box;padding:12px 16px 12px;background:#fff;border-radius:10px;border-top:5px solid #999;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:opacity .35s}
+.lp .ev{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.lp .hd{font-size:22px;font-weight:600;margin:3px 0 5px;line-height:1.2}
+.lp .tx{line-height:1.4;color:#3d3c38}
+.lp .src{margin-top:8px;font-size:14px;line-height:1.35}
+.lp .src a{color:#2f6db5;text-decoration:none;border-bottom:1px solid #c4d4ee;margin-right:10px;pointer-events:auto}
+#verdict{position:absolute;left:80px;right:80px;top:878px;background:#f1efe8;border-radius:12px;padding:16px 24px;font-size:22px;line-height:1.45;transition:opacity .35s}
+#verdict b{font-weight:600}
+#legend{position:absolute;left:80px;right:80px;bottom:22px;display:flex;gap:26px;font-size:16px;color:#6b6a65;align-items:center;flex-wrap:wrap}
+#legend span{display:inline-flex;gap:8px;align-items:center}
+#legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+#legend svg{flex:none}
+#legend .sep{width:1px;height:18px;background:#d3d1c7}
+#hint{position:absolute;right:80px;bottom:22px;font-size:14px;color:#a3a198}
+.dim{opacity:.16}.hide{opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+ <div id="top">
+  <div id="kick">Proof chains · <span id="count"></span><a href="concepts.html">Ideas map</a></div>
+  <div id="ctl">
+   <select id="pick" aria-label="Choose a chain"></select>
+   <button id="bstart" title="Start of chain (Home)">⟲</button>
+   <button id="bprev" title="Back one step (←)">◀</button>
+   <button id="bnext" title="Reveal next step (→ or space)">▶</button>
+   <button id="bfull" title="Full screen (F)">⛶</button>
+  </div>
+ </div>
+ <div id="title"></div>
+ <div id="q"></div>
+ <svg id="links" viewBox="0 0 1920 1080"></svg>
+ <div id="cards"></div>
+ <div id="panels"></div>
+ <div id="verdict"></div>
+ <div id="legend"></div>
+ <div id="hint">← → step · ↑ ↓ chain · F full screen</div>
+</div>
+<script>
+// ---------- sources ----------
+const S={
+ leadwiki:["C. W. Leadbeater (Wikipedia)","https://en.wikipedia.org/wiki/Charles_Webster_Leadbeater"],
+ kfabesant:["KFA: Besant meets Blavatsky (1888)","https://thelifeofkrishnamurti.kfa.org/timelines/timeline-1885-1894/"],
+ krishnawiki:["Krishnamurti (Wikipedia)","https://en.wikipedia.org/wiki/Jiddu_Krishnamurti"],
+ besantv:["Besant v. Narayaniah","https://en.wikipedia.org/wiki/Besant_v._Narayaniah"],
+ besanthill:["Besant Hill School: Huxley & Krishnamurti","https://besanthill.org/?p=1181"],
+ huxleycentre:["Huxley Centre: the 1939 dedication","https://www.huxleycentre.ch/?p=3044"],
+ harvardpsil:["Harvard Psilocybin Project","https://en.wikipedia.org/wiki/Harvard_Psilocybin_Project"],
+ nyplleary:["NYPL: Leary's psychedelic show","https://www.nypl.org/blog/2012/06/04/transmissions-timothy-leary-papers-psychedelic-show"],
+ jarnow:["Village Theatre listings, 1966","https://jessejarnow.com/2020/02/village-theatre-1965-1968-fillmore-east-pre-bill-graham/"],
+ sternint:["Rudi Stern interview (1999)","https://davidsonsfiles.org/rudisterninterview.html"],
+ evanswentz:["Theosophy Forward: Evans-Wentz","https://www.theosophyforward.com/evans-wentz-walter-yeeling-1878-1965-"],
+ leary:["MAPS: Metzner on The Psychedelic Experience","https://maps.org/?p=13069"],
+ davisbardo:["Erik Davis, 'The Psychedelic Book of the Dead'","https://techgnosis.com/wp-content/uploads/2019/03/DavisBardoNovaReligio.pdf"],
+ nprloft:["NPR: The Loft at 50","https://www.npr.org/2020/02/19/807333757/still-saving-the-day-the-most-influential-dance-party-in-history-turns-50"],
+ reverbloft:["Reverb: Mancuso and Leary","https://reverb.com/news/the-disco-soundsystems-that-birthed-modern-dance-music"],
+ loftwiki:["The Loft (Wikipedia)","https://en.wikipedia.org/wiki/The_Loft_(New_York_City)"],
+ rbmalevan:["RBMA: Levan, Knuckles and the Loft","https://daily.redbullmusicacademy.com/2014/04/larry-levan-feature"],
+ knuckleswiki:["Frankie Knuckles (Wikipedia)","https://en.wikipedia.org/wiki/Frankie_Knuckles"],
+ cvmraum:["CVM: László and Raumlichtkunst","https://centerforvisualmusic.org/CKSLAexc.htm"],
+ cvmmoritz:["Moritz, 'Harry Smith, Mythologist'","https://www.centerforvisualmusic.org/MoritzHarrySmith.htm"],
+ aicdocs:["MacDonald, Art in Cinema: Documents","https://alt.library.temple.edu/tupress/titles/1819_reg.html"],
+ foyeroom:["Foye on Belson and Smith","https://www.raymondfoye.info/portrait-of-a-room"],
+ hfasmith:["Harvard Film Archive: Smith & Belson","https://harvardfilmarchive.org/programs/fragments-of-a-faith-forgotten-the-art-of-harry-smith"],
+ belson:["Moritz, Jordan Belson biography","https://www.centerforvisualmusic.org/Belsonbio.htm"],
+ rhizomelight:["Rhizome: Locks, Romero, Ham","https://old.rhizome.org/editorial/2522"],
+ handmadeham:["Handmade Cinema: Bill Ham","https://handmadecinema.com/?p=7580"],
+ hamboing:["Boing Boing: Bill Ham interview","https://boingboing.net/2016/06/22/lightman-fantastic-this-artis.html"],
+ caawilfred:["caa.reviews: Lumia and Thomas Wilfred","https://caareviews.org/reviews/3386"],
+ momalumia:["MoMA: Lumia Suite, Op. 158","https://www.moma.org/documents/moma_press-release_333071.pdf"],
+ griffinlumia:["Griffin: the MoMA lumia room, 1964–81","https://jonathangriffin.org/tag/lumia"],
+ handmadecassen:["Handmade Cinema: Cassen & Stern","https://handmadecinema.com/filmmaker//rudi-stern-and-jackie-cassen/"],
+ liocat:["Lights in Orbit catalogue (1967)","https://www.eai.org/user_files/supporting_documents/LIO_Catalogue_2.pdf"],
+ sturkenlio:["Sturken on Howard Wise: Lights in Orbit","https://vasulka.org/Kitchen/essays_sturken/K_SturkenWise_06.html"],
+ shamdasanisw:["Shamdasani on Jung's séances","https://discovery.ucl.ac.uk/id/eprint/1473767/"],
+ hesselang:["Baumann: Hesse, Lang and Jung","https://hesse.projects.gss.ucsb.edu/papers/baumann3.pdf"],
+ learyhesse:["Psychedelic Review 2 (1963)","https://maps.org/research-archive/psychedelicreview/"],
+ metznerhesse:["Metzner on Hesse","https://cjayarts.com/pages/library/secretchief/08339met.html"],
+ agape:["Agape Lodge (Wikipedia)","https://en.wikipedia.org/wiki/Agape_Lodge"],
+ cameronwiki:["Marjorie Cameron (Wikipedia)","https://en.wikipedia.org/wiki/Marjorie_Cameron"],
+ pleasuredome:["Inauguration of the Pleasure Dome","https://en.wikipedia.org/wiki/Inauguration_of_the_Pleasure_Dome"],
+ laistskull:["LAist: Technicolor Skull","https://laist.com/news/entertainment/icons-kenneth-anger-at-moca-with-te"],
+ momaps1:["MoMA PS1: Kenneth Anger (2009)","https://www.moma.org/calendar/exhibitions/3808"],
+ suzuki:["Beatrice Lane Suzuki (Wikipedia)","https://en.wikipedia.org/wiki/Beatrice_Erskine_Lane_Suzuki"],
+ tricyclecage:["Tricycle: Cage and Suzuki","https://tricycle.org/magazine/john-cage-silent-piece/"],
+ enccage:["Encyclopedia.com: John Cage","https://www.encyclopedia.com/arts/dictionaries-thesauruses-pictures-and-press-releases/cage-john-milton-jr"],
+ artforumpaik:["Artforum: Paik and Cage, Darmstadt 1958","https://www.artforum.com/columns/nam-june-paik-163189/"],
+ reynoldapaik:["Reynolda House: Nam June Paik","https://reynoldahouse.emuseum.com/people/451/nam-june-paik"],
+ sturkenfol:["Sturken on Howard Wise: Festival of Lights","https://www.vasulka.org/Kitchen/essays_sturken/K_SturkenWise_07.html"],
+ ebsn:["EBSN: P-Orridge, Burroughs and Gysin","https://ebsn.eu/scholarship/voices/death-of-a-magus/"],
+ realitystudio:["RealityStudio: P-Orridge and Burroughs","https://realitystudio.org/biography/nothing-here-now-but-the-recordings/"],
+ ptvwiki:["Psychic TV (Wikipedia)","https://en.wikipedia.org/wiki/Psychic_TV"],
+ stranger:["The Stranger: P-Orridge, Norris and Jack the Tab","https://www.thestranger.com/?p=39970"],
+ louder:["Louder: P-Orridge's career","https://www.loudersound.com/features/the-extraordinary-life-and-times-of-genesis-p-orridge"],
+ mcluhanleary:["McLuhan's advice to Leary","https://mcluhansnewsciences.com/mcluhan/2023/01/mcluhans-advice-to-leary/"],
+ gvwiki:["Global Village Video (Wikipedia)","https://en.wikipedia.org/wiki/Global_Village_Video"],
+ radsoft:["Radical Software 1:1 (1970)","https://www.radicalsoftware.org/volume1nr1/pdf/VOLUME1NR1_0016.pdf"],
+ londonchron:["Barbara London: video chronology","https://www.artforum.com/features/a-chronology-of-video-activity-in-the-united-states-1965-1980-213565/"]
+};
+// ---------- chains ----------
+// node: [name, year, tag, domain, line]   domain: o occult · c counterculture & ideas · a light, film & AV · d club culture
+// link: [evidence, headline, text, [sources]]   evidence: k met or worked together · w saw the work · b through a book
+const CH=[
+{t:"From a séance to a light show",q:"Can we get from a Vermont séance to a New York light show only through people who met?",
+ n:[["Helena Blavatsky & Henry Olcott","1874","People","o","Meet at the Eddy brothers' séances in Vermont; found the Theosophical Society in 1875."],
+    ["Charles Leadbeater & Annie Besant","1909","People","o","Leaders of the Theosophical Society at Adyar, India."],
+    ["Jiddu Krishnamurti","1909","Person","o","Raised as the Theosophists' coming 'World Teacher'; broke away in 1929."],
+    ["Aldous Huxley","1938","Person","c","Novelist; The Doors of Perception (1954)."],
+    ["Timothy Leary","1960","Person","c","Harvard psychologist turned psychedelic showman."],
+    ["Leary's psychedelic celebrations, New York","1966","Event","a","Village Theater shows with live projections by Cassen and Stern."]],
+ l:[["k","Her pupils","Leadbeater met Blavatsky in 1884 and became her pupil; Besant met her in 1888 and gave her a home.",["leadwiki","kfabesant"]],
+    ["k","They raised him","Leadbeater picked out the boy at Adyar in 1909; Besant became his guardian.",["krishnawiki","besantv"]],
+    ["k","Lifelong friends","Met in California in 1938; Huxley dedicated a novel to him in 1939.",["besanthill","huxleycentre"]],
+    ["k","Worked together","Huxley sat on the founding board of Leary's Harvard Psilocybin Project (1960).",["harvardpsil"]],
+    ["k","He staged it","Leary presented the shows; Cassen and Stern developed them with him at Millbrook.",["nyplleary","jarnow","sternint"]]],
+ v:"<b>Every step is a meeting or a working relationship.</b> That proves personal contact from a séance room to a light show. It does not prove one idea travelled intact: Krishnamurti rejected the role made for him, and Huxley's drug mysticism was his own."},
+
+{t:"From a séance to the Magic Theatre",q:"How did a teenage medium in Basel end up staged as a New York light show?",
+ n:[["Helene Preiswerk's séances, Basel","1895","Event","o","A teenage medium: Carl Jung's cousin."],
+    ["Carl Jung","1902","Person","c","Psychiatrist of the unconscious, archetypes and mandalas."],
+    ["Hermann Hesse","1927","Person","c","Steppenwolf (1927): Harry Haller enters the 'Magic Theatre'."],
+    ["Timothy Leary & Ralph Metzner","1963","People","c","Harvard psychedelic researchers."],
+    ["'Death of the Mind', Village Theater, New York","1966","Event","a","A light show of Steppenwolf, with projections by Cassen and Stern."]],
+ l:[["k","He sat in on them","Jung attended as a student and made the séances the subject of his 1902 thesis.",["shamdasanisw"]],
+    ["k","Analysed by his pupil","Hesse was analysed by Jung's pupil J. B. Lang (1916–17) and met Jung himself in 1917.",["hesselang"]],
+    ["b","Read his novels","Hesse died in 1962. Leary and Metzner knew him through his books, which they presented as guides to the psychedelic journey (1963).",["learyhesse","metznerhesse"]],
+    ["k","They staged it","Leary's first Village Theater show took the audience into the Magic Theatre; Metzner played Harry Haller.",["sternint"]]],
+ v:"<b>Three steps are first-hand, one goes through a book.</b> The séance room turns into the unconscious, and the unconscious into a light show. No Spiritualist belief survives the trip."},
+
+{t:"Wilfred's lumia: from Theosophy to the New York light shows",q:"Did the Theosophists' art of light reach the 1960s light shows?",
+ n:[["Claude Bragdon & the Prometheans","1919","Group","o","A Theosophist architect and a group set up to make light into an art."],
+    ["Thomas Wilfred","1922","Person","a","Builds the Clavilux and names its art of moving coloured light 'lumia'. MoMA shows his Lumia Suite from 1964 to 1981."],
+    ["Jackie Cassen & Rudi Stern","1966","People","a","Projection artists who made Leary's light shows."],
+    ["Leary's psychedelic celebrations, New York","1966","Event","a","Village Theater stage shows, with their live projections."]],
+ l:[["k","Built it together","Wilfred built the Clavilux inside the Prometheans, with Bragdon, in 1919–22.",["caawilfred"]],
+    ["w","Saw the work","Cassen was directly influenced by lumia; Stern remembered the Lumia Suite at MoMA and called himself Wilfred's fan.",["handmadecassen","sternint","momalumia","griffinlumia"]],
+    ["k","They made the projections","Their projections ran through Leary's shows. In 1967 their 'Kinetic Projector #1' hung beside Wilfred's lumia in Lights in Orbit.",["jarnow","liocat","sturkenlio"]]],
+ v:"<b>Contact with the work, not with the man.</b> The start is fully first-hand: Wilfred's light art was born in a Theosophist circle. But no meeting between Wilfred and Cassen or Stern is recorded, and neither says when they first saw lumia."},
+
+{t:"Colour-light concerts to the planetarium dome",q:"Is there a line of live abstract projection to music from 1920s Germany to 1950s San Francisco?",
+ n:[["Alexander László","1925","Person","a","Colour-light piano concerts with slides and spotlights."],
+    ["Oskar Fischinger","1926","Person","a","Abstract film-maker who read Theosophy and Buddhism; to Hollywood in 1936."],
+    ["Harry Smith","1950","Person","a","Paints films by hand and plays them live with bebop musicians."],
+    ["Jordan Belson","1957","Person","a","Film-maker; with Henry Jacobs makes the Vortex concerts of light and sound at the Morrison Planetarium (1957–59)."]],
+ l:[["k","Performed together","Fischinger's films were added to László's colour-light concerts in March 1926.",["cvmraum"]],
+    ["k","Visited his home","Smith visited Fischinger, wrote to him in 1947 and made a film in homage to him.",["cvmmoritz","aicdocs"]],
+    ["k","Best friends","They saw Fischinger's films together at Art in Cinema (1946) and haunted the jazz clubs together.",["foyeroom","hfasmith","belson"]]],
+ v:"<b>All first-hand, and mostly outside Theosophy.</b> Belson's Vortex is the precedent usually named for the Bay Area light shows of the mid-1960s, but no handover is recorded, so the chain stops with him."},
+
+{t:"Where liquid light came from",q:"Who actually invented the liquid light show?",
+ n:[["Seymour Locks","1952","Person","a","Art teacher at San Francisco State; swirls paint in glass dishes on an overhead projector."],
+    ["Elias Romero","1956","Person","a","Projects liquid light for poets and dancers in North Beach."],
+    ["Bill Ham","1965","Person","a","Painter who starts making light shows of his own."],
+    ["Avalon Ballroom light shows, San Francisco","1966","Event","a","Rock concerts with live liquid projection."]],
+ l:[["k","He taught him","Romero learned the technique as Locks' student.",["rhizomelight","handmadeham"]],
+    ["k","Lent him the projector","Romero lent his overhead projector to his landlord, Bill Ham.",["handmadeham","hamboing"]],
+    ["k","He ran the shows","Ham ran the light shows at the Avalon Ballroom (1966).",["hamboing","handmadeham"]]],
+ v:"<b>Every step first-hand, and nothing occult in it.</b> The technique came from an art teacher's classroom. The cosmic framing arrived later, with the audience and the era."},
+
+{t:"The Tibetan Book of the Dead: Theosophy to the dance floor",q:"How did a Theosophist's book shape New York's first great dance parties?",
+ n:[["Annie Besant","1918","Person","o","President of the Theosophical Society, Adyar."],
+    ["W. Y. Evans-Wentz","1927","Person","o","Theosophist who edits and titles The Tibetan Book of the Dead."],
+    ["Timothy Leary","1964","Person","c","The Psychedelic Experience (1964); lectures and parties in New York."],
+    ["David Mancuso, the Loft","1970","Person","d","Invitation-only dance parties at 647 Broadway, New York."],
+    ["Frankie Knuckles, the Warehouse","1977","Person","d","The Chicago club that gave house music its name."]],
+ l:[["k","Stayed with her","Evans-Wentz joined the Society in 1902 and stayed with Besant at Adyar in 1918.",["evanswentz"]],
+    ["b","Used his book","Leary, Metzner and Alpert turned it into an LSD manual, The Psychedelic Experience (1964).",["leary","davisbardo"]],
+    ["k","Joined his circle","Mancuso joined Leary's study groups and parties and built his nights on the book's three stages.",["nprloft","reverbloft"]],
+    ["k","Danced there","Knuckles and Larry Levan were early Loft regulars; the Loft was a model for the Warehouse.",["loftwiki","rbmalevan","knuckleswiki"]]],
+ v:"<b>One step is a book; the rest are personal.</b> The most direct line from Theosophy to club culture. What travelled was the shape of a night, in stages like a trip, not Theosophical belief."},
+
+{t:"Crowley's magick to a light-and-sound ritual",q:"Is there a personal line from Crowley to live occult AV?",
+ n:[["Aleister Crowley","1904","Person","o","Founds Thelema; heads the Ordo Templi Orientis (OTO)."],
+    ["Jack Parsons","1942","Person","o","Rocket engineer; head of the OTO's Agape Lodge in California."],
+    ["Marjorie Cameron","1946","Person","o","Artist, poet and Thelemite."],
+    ["Kenneth Anger","1954","Person","a","Thelemite film-maker of the Magick Lantern Cycle."],
+    ["Technicolor Skull","2009","Event","a","Live light and sound billed as magick ritual, with Brian Butler."]],
+ l:[["k","His order","Crowley and his deputy Karl Germer pushed out the lodge's leader; Parsons took over in 1942.",["agape"]],
+    ["k","Married","Cameron married Parsons, a fellow Thelemite.",["cameronwiki"]],
+    ["k","He cast her","Cameron played the Scarlet Woman in Anger's Inauguration of the Pleasure Dome (1954).",["pleasuredome","cameronwiki"]],
+    ["k","He performed it","Anger played theremin, Butler guitar and electronics, in front of projections of Anger's films.",["laistskull","momaps1"]]],
+ v:"<b>Every step personal.</b> The occult line into film and live AV runs through ritual magic, not Theosophy. It hands on rites to perform rather than pictures of the invisible."},
+
+{t:"Magick to acid house",q:"How did occult technique reach British acid house?",
+ n:[["Brion Gysin & William Burroughs","1959","People","c","Cut-ups (1959) and the Dreamachine (1961), treated as magical tools."],
+    ["Genesis P-Orridge","1973","Person","c","Artist and magician; co-founds Throbbing Gristle in 1976."],
+    ["Psychic TV & Thee Temple ov Psychick Youth","1981","Group","c","A band and a magical network side by side: sigils, cut-ups, Crowley."],
+    ["Jack the Tab and Tekno Acid Beat","1988","Records","d","Acid house albums, in the year of Britain's rave explosion."]],
+ l:[["k","Friends and teachers","P-Orridge befriended Burroughs and Gysin in London (1973); Burroughs taught him cut-ups and tape work.",["ebsn","realitystudio"]],
+    ["k","Founded it","P-Orridge formed Psychic TV with Alex Fergusson in 1981, as Throbbing Gristle ended.",["ptvwiki"]],
+    ["k","Made with a producer","P-Orridge made Jack the Tab with the producer Richard Norris: fake compilations to push the new sound (1988).",["ptvwiki","stranger","louder"]]],
+ v:"<b>All first-hand.</b> The magic is method, not doctrine: cut-ups and sigils as techniques, carried by one artist from the Beat generation into acid house."},
+
+{t:"From Theosophy to video art: Suzuki, Cage, Paik",q:"Did the Theosophical Society's Buddhist channel reach the first video artists?",
+ n:[["D. T. & Beatrice Lane Suzuki","1920","People","o","Join the Theosophical Society in 1920; Zen teachers to the West."],
+    ["John Cage","1951","Person","c","Composer: chance operations, the I Ching, silence."],
+    ["Nam June Paik","1963","Person","a","Turns television sets into art."],
+    ["Festival of Lights, Howard Wise Gallery, New York","1967","Event","a","A light-art show that adds TV works; video follows in 1969."]],
+ l:[["k","Attended his classes","Cage attended Suzuki's classes at Columbia in the early 1950s.",["tricyclecage","enccage","suzuki"]],
+    ["k","Met","Paik met Cage at the Darmstadt summer course in 1958 and changed course.",["artforumpaik","reynoldapaik"]],
+    ["k","Exhibited there","Wise added Paik's TV works to the show, then staged TV as a Creative Medium (1969).",["sturkenfol"]]],
+ v:"<b>All first-hand.</b> What crossed was Zen method; the Theosophy had fallen away by the time it reached chance music and the first video artist."},
+
+{t:"From the light show to video art",q:"Where did the light-show makers go next?",
+ n:[["Marshall McLuhan","1964","Person","c","Understanding Media; 'the global village'."],
+    ["Timothy Leary","1966","Person","c","'Turn on, tune in, drop out'."],
+    ["Rudi Stern","1966","Person","a","Painter turned light-projection artist, Leary's collaborator."],
+    ["Global Village, New York","1969","Group","a","Video theatre: walls of monitors with live-switched tapes."],
+    ["Vision and Television, Rose Art Museum","1970","Event","a","The first US museum exhibition of video."]],
+ l:[["k","Advised him","Over lunch in New York (1966) McLuhan told Leary to sell LSD like an advertiser; the slogan followed.",["mcluhanleary"]],
+    ["k","Worked together","Stern lived and worked with Leary for about two years and built his shows with Jackie Cassen.",["sternint"]],
+    ["k","Co-founded it","Stern co-founded Global Village (1969), naming it after McLuhan, whom he had met at Millbrook.",["sternint","gvwiki"]],
+    ["k","Exhibited there","Global Village built a walk-in monitor for the show, with a live operator switching inside.",["sternint","radsoft","londonchron"]]],
+ v:"<b>All first-hand.</b> The New York light show led straight into video theatre: the same people, the same multi-screen thinking, now with cameras and monitors."}
+];
+// ---------- look ----------
+const DOM={o:["Occult & Theosophy","#5b2a86"],c:["Counterculture & ideas","#c27a12"],a:["Light, film & AV","#2f6db5"],d:["Club culture","#c2185b"]};
+const EV={k:["Met or worked together","#1D9E75",""],w:["Saw the work in person","#0e8fa0","10 6"],b:["Through a book","#8a8780","3 7"]};
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+let ci=0,step=0;
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080),st=$("stage");st.style.transform=`scale(${k})`;st.style.left=((innerWidth-1920*k)/2)+"px";st.style.top=((innerHeight-1080*k)/2)+"px";}
+addEventListener("resize",fit);
+$("pick").innerHTML=CH.map((c,i)=>`<option value="${i}">${i+1}. ${esc(c.t)}</option>`).join("");
+$("legend").innerHTML=Object.values(EV).map(([t,c,da])=>`<span><svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="${c}" stroke-width="4" stroke-dasharray="${da}" stroke-linecap="round"/></svg>${t}</span>`).join("")
+ +`<span class="sep"></span>`+Object.values(DOM).map(([t,c])=>`<span><i style="background:${c}"></i>${t}</span>`).join("");
+function draw(){
+ const c=CH[ci],n=c.n.length,W=1920,M=80,G=n>=6?64:n===5?82:100,cw=Math.min(340,(W-2*M-(n-1)*G)/n),tot=n*cw+(n-1)*G,x0=(W-tot)/2;
+ const pw=Math.min(cw+G-14,420),fs=n>=6?17:n===5?18.5:19.5,nfs=n>=6?24:27,CY=240+150,PT=590;
+ $("title").textContent=c.t;$("q").textContent=c.q;$("count").textContent=`${ci+1} of ${CH.length}`;$("pick").value=ci;
+ $("cards").innerHTML=c.n.map((d,i)=>{const col=DOM[d[3]][1];return `<div class="card${i>step?" dim":""}" style="left:${x0+i*(cw+G)}px;width:${cw}px"><div class="bar" style="background:${col}"></div><div class="tag">${esc(d[2])}</div><div class="yr" style="color:${col}">${esc(d[1])}</div><div class="nm" style="font-size:${nfs}px">${esc(d[0])}</div><div class="ln">${esc(d[4])}</div></div>`;}).join("");
+ $("panels").innerHTML=c.l.map((l,i)=>{const [t,col]=EV[l[0]],cx=x0+i*(cw+G)+cw+G/2;return `<div class="lp${i>=step?" hide":""}" style="left:${cx-pw/2}px;width:${pw}px;border-top-color:${col}"><div class="ev" style="color:${col}">${i+1} · ${t}</div><div class="hd">${esc(l[1])}</div><div class="tx" style="font-size:${fs}px">${esc(l[2])}</div><div class="src">${l[3].filter(k=>S[k]).map(k=>`<a href="${S[k][1]}" target="_blank" rel="noopener">${esc(S[k][0])}</a>`).join("")}</div></div>`;}).join("");
+ let svg="<defs>"+Object.entries(EV).map(([k,[t,col]])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker>`).join("")+"</defs>";
+ c.l.forEach((l,i)=>{const [t,col,da]=EV[l[0]],x1=x0+i*(cw+G)+cw+4,x2=x0+(i+1)*(cw+G)-6,cx=(x1+x2)/2,op=i>=step?0:1;
+  svg+=`<g opacity="${op}" style="transition:opacity .35s"><line x1="${x1}" y1="${CY}" x2="${x2}" y2="${CY}" stroke="${col}" stroke-width="5" stroke-dasharray="${da}" stroke-linecap="round" marker-end="url(#ah${l[0]})"/>`
+   +`<line x1="${cx}" y1="${CY+18}" x2="${cx}" y2="${PT}" stroke="${col}" stroke-width="2" stroke-dasharray="2 5" opacity=".7"/>`
+   +`<circle cx="${cx}" cy="${CY}" r="17" fill="#fff" stroke="${col}" stroke-width="3"/><text x="${cx}" y="${CY+6.5}" text-anchor="middle" font-size="18" font-weight="700" fill="${col}">${i+1}</text></g>`;});
+ $("links").innerHTML=svg;
+ $("verdict").innerHTML=c.v;$("verdict").className=step>=n-1?"":"hide";
+ $("bprev").disabled=step<=0;$("bnext").disabled=step>=n-1;
+ try{history.replaceState(null,"","#"+(ci+1));}catch(e){}}
+function setChain(i,all){ci=(i+CH.length)%CH.length;step=all?CH[ci].n.length-1:0;draw();}
+function move(d){const n=CH[ci].n.length;step=Math.max(0,Math.min(n-1,step+d));draw();}
+$("pick").onchange=e=>{setChain(+e.target.value,true);e.target.blur();};
+$("bstart").onclick=()=>{step=0;draw();};$("bprev").onclick=()=>move(-1);$("bnext").onclick=()=>move(1);
+function full(){if(document.fullscreenElement)document.exitFullscreen();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}
+$("bfull").onclick=full;
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;
+ if(["ArrowRight"," ","PageDown"].includes(e.key)){e.preventDefault();move(1);}
+ else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();move(-1);}
+ else if(e.key==="ArrowDown"){e.preventDefault();setChain(ci+1,true);}
+ else if(e.key==="ArrowUp"){e.preventDefault();setChain(ci-1,true);}
+ else if(e.key==="Home"){step=0;draw();}
+ else if(e.key==="End"){step=CH[ci].n.length-1;draw();}
+ else if(e.key==="f"||e.key==="F")full();});
+const h=parseInt((location.hash||"").slice(1),10);
+fit();setChain(h>=1&&h<=CH.length?h-1:0,true);
+</script>
+</body>
+</html>

@@ -32,7 +32,7 @@ html,body{margin:0;height:100%;background:#ecE9e1;overflow:hidden;font-family:sy
 .lp .src a{color:#2f6db5;text-decoration:none;border-bottom:1px solid #c4d4ee;margin-right:10px;pointer-events:auto}
 #verdict{position:absolute;left:80px;right:80px;top:878px;background:#f1efe8;border-radius:12px;padding:16px 24px;font-size:22px;line-height:1.45;transition:opacity .35s}
 #verdict b{font-weight:600}
-#legend{position:absolute;left:80px;right:80px;bottom:22px;display:flex;gap:26px;font-size:16px;color:#6b6a65;align-items:center;flex-wrap:wrap}
+#legend{position:absolute;left:80px;right:80px;bottom:22px;display:flex;gap:18px;font-size:16px;color:#6b6a65;align-items:center;flex-wrap:wrap}
 #legend span{display:inline-flex;gap:8px;align-items:center}
 #legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
 #legend svg{flex:none}
@@ -71,6 +71,21 @@ const S={
  wmoldcinema:["University of Westminster: the old cinema","https://www.westminster.ac.uk/research/groups-and-centres/centre-for-law-society-and-popular-culture/projects/classified/the-old-cinema"],
  wmcinemahist:["History of the Regent Street Cinema (PDF)","https://www.westminster.ac.uk/sites/default/public-files/general-documents/history-regent-street-cinema.pdf"],
  smmlumiere:["Science and Media Museum: the Lumières","https://blog.scienceandmediamuseum.org.uk/the-lumiere-brothers-pioneers-of-cinema-and-colour-photography"],
+ kellarwiki:["Harry Kellar (Wikipedia)","https://en.wikipedia.org/wiki/Harry_Kellar"],
+ pbskellar:["PBS: Houdini and Kellar","https://www.pbs.org/wgbh/americanexperience/features/houdini-kellar/"],
+ locira:["Library of Congress: Houdini with Ira Davenport, c.1910","https://www.loc.gov/item/96520653"],
+ magicdetira:["Magic Detective: Houdini and Ira Davenport","https://www.themagicdetective.com/search/label/Davenport%20Brothers"],
+ ibmkellar:["IBM: Kellar, the Dean of Magic","https://magician.org/blog/kellar--the-dean-of-magic?blogid=47"],
+ pbsdoyle:["PBS: Houdini and Conan Doyle","https://www.pbs.org/wgbh/americanexperience/features/houdini-conan-doyle"],
+ vwdoyle:["Victorian Web: Conan Doyle and Spiritualism","https://victorianweb.org/victorian/authors/doyle/spiritualism.html"],
+ lithubdoyle:["Lit Hub: Houdini and Conan Doyle","https://lithub.com/why-harry-houdini-did-not-like-arthur-conan-doyle/"],
+ goulden:["Goulden: The Davenport Brothers in Britain (2024)","https://www.davenportcollection.co.uk/wp-content/uploads/2024/10/Davenport-Brothers-in-Britain.-1st-edn.pdf"],
+ dbwiki:["Davenport brothers (Wikipedia)","https://en.wikipedia.org/wiki/Davenport_brothers"],
+ maskwiki:["J. N. Maskelyne (Wikipedia)","https://en.wikipedia.org/wiki/John_Nevil_Maskelyne"],
+ devantwiki:["David Devant (Wikipedia)","https://en.wikipedia.org/wiki/David_Devant"],
+ vcdevant:["Who's Who of Victorian Cinema: Devant","https://www.victorian-cinema.net/devant"],
+ smmmagic:["Science and Media Museum: magic and early cinema","https://blog.scienceandmediamuseum.org.uk/magic-early-british-cinema"],
+ ddconjurer:["D. Devant, Conjurer (Wikipedia)","https://en.wikipedia.org/wiki/D._Devant,_Conjurer"],
  leadwiki:["C. W. Leadbeater (Wikipedia)","https://en.wikipedia.org/wiki/Charles_Webster_Leadbeater"],
  kfabesant:["KFA: Besant meets Blavatsky (1888)","https://thelifeofkrishnamurti.kfa.org/timelines/timeline-1885-1894/"],
  krishnawiki:["Krishnamurti (Wikipedia)","https://en.wikipedia.org/wiki/Jiddu_Krishnamurti"],
@@ -130,7 +145,7 @@ const S={
  londonchron:["Barbara London: video chronology","https://www.artforum.com/features/a-chronology-of-video-activity-in-the-united-states-1965-1980-213565/"]
 };
 // ---------- chains ----------
-// node: [name, year, tag, domain, line]   domain: o occult · c counterculture & ideas · a light, film & AV · d club culture
+// node: [name, year, tag, domain, line]   domain: o occult · c counterculture & ideas · m stage magic · a light, film & AV · d club culture
 // link: [evidence, headline, text, [sources]]   evidence: k met or worked together · w saw the work · b through a book
 const CH=[
 {t:"From a séance to a light show",q:"Can we get from a Vermont séance to a New York light show only through people who met?",
@@ -253,10 +268,30 @@ const CH=[
  l:[["k","Same staff","Both worked at the Polytechnic for decades. Childe painted slides for its 1863 Cinderella under Pepper, and his apprentice W. R. Hill went to work for Pepper in 1867.",["childewiki","rpighosts"]],
     ["k","Ran it","Pepper joined in 1848, the year the theatre opened, and returned as managing director in 1861; the Ghost followed at Christmas 1862.",["mfpepper","wmoldcinema"]],
     ["k","Shown there","The Polytechnic rented the theatre to the Lumières. The magician Félicien Trewey showed the Cinématographe to the press on 20 February 1896 and to paying audiences the next day.",["wmoldcinema","wmcinemahist","smmlumiere"]]],
- v:"<b>All first-hand, through one building.</b> The ghost show didn't die out: it moved into the Polytechnic, where phantasmagoria, dissolving views and Pepper's Ghost played to the public that saw Britain's first paid films. Only the start is thin: Childe is said, not shown, to have worked for Philipsthal."}
+ v:"<b>All first-hand, through one building.</b> The ghost show didn't die out: it moved into the Polytechnic, where phantasmagoria, dissolving views and Pepper's Ghost played to the public that saw Britain's first paid films. Only the start is thin: Childe is said, not shown, to have worked for Philipsthal."},
+
+{t:"From the spirit cabinet to Houdini",q:"Did the séance cabinet turn into escapology?",
+ n:[["Ira & William Davenport","1864","People","o","Buffalo mediums, tied up inside a 'spirit cabinet' while instruments play; introduced as Spiritualists."],
+    ["Harry Kellar","1869","Person","m","Their assistant, then business manager; later the 'Dean of American magicians'."],
+    ["Harry Houdini","1910","Person","m","Escape artist. Meets Ira Davenport in 1910 and learns the rope tie from him; later the best-known enemy of fake mediums."],
+    ["Arthur Conan Doyle","1920","Person","o","Spiritualist and author; his History of Spiritualism (1926) treats the Davenports as genuine."]],
+ l:[["k","Worked for them","Kellar joined the brothers and William Fay in 1869, as assistant and then business manager, and picked up their rope tie. He left in 1873, taking Fay with him.",["kellarwiki","pbskellar","locira"]],
+    ["k","His mentor","Houdini's hero and friend. In 1917 he coaxed Kellar out of retirement for a Hippodrome benefit and had him carried off stage in a sedan chair.",["pbskellar","ibmkellar"]],
+    ["k","Friends, then enemies","They became friends over Spiritualism in 1920. In 1922 Lady Doyle 'contacted' Houdini's mother in automatic writing, in English, which his mother barely spoke. The friendship broke.",["pbsdoyle","vwdoyle","lithubdoyle"]]],
+ v:"<b>All first-hand, and it comes full circle.</b> The spirit cabinet passed from mediums to magicians: Kellar carried the Davenports' rope tie into stage magic, and Houdini, who also met Ira himself, turned it into escapology and then against the mediums. Conan Doyle still believed the Davenports were real."},
+
+{t:"From the spirit cabinet to the trick film",q:"How did a Spiritualist stage act lead to Méliès?",
+ n:[["Ira & William Davenport","1865","People","o","Spirit-cabinet mediums on their British tour, with riots in Liverpool and Leeds."],
+    ["John Nevil Maskelyne","1873","Person","m","Cheltenham magician; runs the Egyptian Hall, 'England's Home of Mystery', and writes against Spiritualism."],
+    ["David Devant","1896","Person","m","Magician and shadowgraphist; buys Robert Paul's 35mm Theatrograph and shows films at the Egyptian Hall from 19 March 1896."],
+    ["Georges Méliès","1896","Person","a","Owner of the Théâtre Robert-Houdin, Paris; turns a Paul projector into his first camera; pioneer of the trick film."]],
+ l:[["w","Saw the act","Maskelyne said he saw through their cabinet séance at Cheltenham in March 1865 and built his own version. The local papers don't mention him, but the visit launched Maskelyne and Cooke.",["goulden","dbwiki"]],
+    ["k","Hired him, then partners","Devant joined the Egyptian Hall company in 1893, replacing Charles Morritt, and became Maskelyne's partner in 1905.",["maskwiki","devantwiki","vcdevant"]],
+    ["k","Sold him the projector","Devant sold Méliès Paul projectors in 1896; Méliès turned one into a camera, and in 1897 filmed Devant performing (D. Devant, Conjurer).",["smmmagic","vcdevant","ddconjurer"]]],
+ v:"<b>One claim, then first-hand.</b> Only the Maskelyne family's account puts him in the room at Cheltenham. After that every step is a working relationship: the Egyptian Hall made Devant, and Devant put Paul's 35mm projector into the hands of the great pioneer of the trick film."}
 ];
 // ---------- look ----------
-const DOM={o:["Occult & Theosophy","#5b2a86"],c:["Counterculture & ideas","#c27a12"],a:["Light, film & AV","#2f6db5"],d:["Club culture","#c2185b"]};
+const DOM={o:["Occult & Theosophy","#5b2a86"],c:["Counterculture & ideas","#c27a12"],m:["Stage magic","#7a5230"],a:["Light, film & AV","#2f6db5"],d:["Club culture","#c2185b"]};
 const EV={k:["Met or worked together","#1D9E75",""],w:["Saw the work in person","#0e8fa0","10 6"],b:["Through a book","#8a8780","3 7"]};
 const $=id=>document.getElementById(id),esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
 let ci=0,step=0;

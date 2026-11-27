@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strands: six kinds of film outside the cinema, and their roots</title>
+<style>
+html,body{margin:0;height:100%;background:#ecE9e1;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f1e1c}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;background:#fbfaf7;transform-origin:0 0;overflow:hidden}
+#top{position:absolute;left:80px;right:80px;top:34px;display:flex;justify-content:space-between;align-items:center}
+#kick{font-size:17px;letter-spacing:.12em;text-transform:uppercase;color:#8a8780}
+#kick a{color:#8a8780;text-decoration:none;border-bottom:1px dotted #b5b2a8;letter-spacing:0;text-transform:none;margin-left:14px}
+#ctl{display:flex;gap:10px;align-items:center}
+#ctl select,#ctl button{font:inherit;font-size:19px;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1f1e1c}
+#ctl select{max-width:560px}
+#ctl button{cursor:pointer;background:#f1efe8;min-width:46px}
+#ctl button:disabled{opacity:.35;cursor:default}
+#hint{position:absolute;right:80px;top:86px;font-size:14px;color:#a3a198}
+#title{position:absolute;left:80px;right:420px;top:96px;font-size:46px;font-weight:600;line-height:1.1}
+#q{position:absolute;left:80px;right:80px;top:160px;font-size:25px;color:#6b6a65;line-height:1.35}
+#links{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
+#links .bd{pointer-events:auto;cursor:pointer}
+.card{position:absolute;box-sizing:border-box;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.09);padding:0 18px 12px;overflow:hidden;transition:opacity .35s;cursor:pointer}
+.card .bar{height:8px;margin:0 -18px 11px}
+.card .hd{display:flex;align-items:baseline;gap:10px}
+.card .yr{font-weight:600}
+.card .tag{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#8a8780}
+.card .nm{font-weight:600;line-height:1.15;margin:4px 0 6px}
+.card .ln{line-height:1.36;color:#5d5c57}
+.card.ctx{background:#f7f6f2;box-shadow:none;border:2px dashed #c9c6bc}
+.card.sel{outline:3px solid #1f1e1c;outline-offset:2px}
+.card.root{padding:0 22px 16px}
+.card.root .rl{font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.card.root .nt{font-size:15px;color:#6b6a65;margin-bottom:10px;font-style:italic}
+.card.root.has{background:#f6f1fb}
+.card.root.has .rl{color:#5b2a86}
+.card.root.none{background:#f4f3ef;box-shadow:none;border:2px dashed #b9b6ab}
+.card.root.none .rl{color:#7d7a72;margin-top:18px}
+#panel{position:absolute;left:80px;right:80px;top:726px;height:158px;box-sizing:border-box;display:flex;gap:18px;transition:opacity .25s}
+.pn{flex:1;min-width:0;background:#fff;border-radius:10px;border-top:5px solid #999;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:10px 18px 10px;overflow:hidden}
+.pn .ev{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.pn .h{font-size:22px;font-weight:600;margin:2px 0 4px;line-height:1.2}
+.pn .tx{line-height:1.38;color:#3d3c38}
+.pn .src{margin-top:6px;font-size:14px;line-height:1.35}
+.pn .src a{color:#2f6db5;text-decoration:none;border-bottom:1px solid #c4d4ee;margin-right:10px}
+.pn .src span{color:#8a8780;margin-right:6px}
+#verdict{position:absolute;left:80px;right:80px;top:898px;background:#f1efe8;border-radius:12px;padding:14px 24px;font-size:21px;line-height:1.42;transition:opacity .35s}
+#verdict b{font-weight:600}
+#legend{position:absolute;left:80px;right:80px;bottom:20px;display:flex;gap:16px;font-size:15px;color:#6b6a65;align-items:center;flex-wrap:wrap}
+#legend span{display:inline-flex;gap:7px;align-items:center}
+#legend i{display:inline-block;width:13px;height:13px;border-radius:3px}
+#legend i.dash{background:#f7f6f2;border:2px dashed #c9c6bc;width:18px;height:12px;border-radius:3px}
+#legend svg{flex:none}
+#legend .sep{width:1px;height:18px;background:#d3d1c7}
+.dim{opacity:.16}.hide{opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+ <div id="top">
+  <div id="kick">Strands · <span id="count"></span><a href="chains.html">Proof chains</a><a href="concepts.html">Ideas map</a></div>
+  <div id="ctl">
+   <select id="pick" aria-label="Choose a strand"></select>
+   <button id="bstart" title="Start of strand (Home)">⟲</button>
+   <button id="bprev" title="Back one step (←)">◀</button>
+   <button id="bnext" title="Reveal next step (→ or space)">▶</button>
+   <button id="bfull" title="Full screen (F)">⛶</button>
+  </div>
+ </div>
+ <div id="hint">← → step · ↑ ↓ strand · click a card or number for details · F full screen</div>
+ <div id="title"></div>
+ <div id="q"></div>
+ <svg id="links" viewBox="0 0 1920 1080"></svg>
+ <div id="cards"></div>
+ <div id="panel"></div>
+ <div id="verdict"></div>
+ <div id="legend"></div>
+</div>
+<script>
+// ---------- sources ----------
+const S={
+ eddywiki:["Eddy Brothers (Wikipedia)","https://en.wikipedia.org/wiki/Eddy_Brothers"],
+ encolcott:["Encyclopedia.com: Henry Steel Olcott","https://www.encyclopedia.com/science/encyclopedias-almanacs-transcripts-and-maps/olcott-henry-steel-1832-1907"],
+ // son et lumière
+ rcms1937:["1937 review of Beaudouin's fêtes de la lumière (PDF)","https://pmf.regroupement-rcms.org/media/public/documents/ART-DURb-1937-21.pdf"],
+ wikibelleseaux:["Fête des belles eaux (Wikipedia)","https://en.wikipedia.org/wiki/F%C3%AAte_des_belles_eaux"],
+ trcpaulrh:["Theatrecrafts: Paul Robert-Houdin","https://theatrecrafts.com/pages/home/archive/people/paul-robert-houdin/"],
+ goldmansel:["Goldman: music for the first son et lumière shows (2021)","https://assets.erudit.tech/fr/revues/rmo/2021-v8-n1-rmo06228/1079792ar.pdf"],
+ operajarre:["Opéra de Paris: Maurice Jarre","https://www.operadeparis.fr/en/artists/maurice-jarre"],
+ tcsel:["Theatrecrafts: son et lumière timeline","https://theatrecrafts.com/pages/home/shows/son-et-lumiere/"],
+ hansardgr:["Hansard, 17 June 1958: Greenwich","https://api.parliament.uk/historic-hansard/written-answers/1958/jun/17/son-et-lumiere-display-greenwich"],
+ wikijmj:["Jean-Michel Jarre (Wikipedia)","https://en.wikipedia.org/wiki/Jean-Michel_Jarre"],
+ qobuzjmj:["Qobuz: Jarre, 50 years of electronic music","https://www.qobuz.com/ca-en/magazine/story/2022/12/02/jean-michel-jarre-50-years-of-electronic-music/"],
+ jmjconcorde:["Jean-Michel Jarre: Place de la Concorde","https://jeanmicheljarre.com/live/place-de-la-concorde"],
+ europe1jmj:["Europe 1: Jarre on the Concorde concert","https://www.europe1.fr/culture/jean-michel-jarre-sur-son-concert-mythique-place-de-la-concorde-jai-mis-un-an-a-men-remettre-3927375"],
+ // multimedia
+ moholypc:["e-flux: Moholy-Nagy, 'Simultaneous or Poly-Cinema'","https://www.e-flux.com/notes/6783479/simultaneous-or-poly-cinema"],
+ wikicinerama:["Cinerama (Wikipedia)","https://en.wikipedia.org/wiki/Cinerama"],
+ wikiwaller:["Fred Waller (Wikipedia)","https://en.wikipedia.org/wiki/Fred_Waller"],
+ hmlesson:["Herman Miller: the Sample Lesson","https://www.hermanmiller.com/stories/why-magazine/lesson-learned/"],
+ efsl:["Eames Foundation: A Rough Sketch for a Sample Lesson","https://eamesfoundation.org/?p=4680"],
+ efglimpses:["Eames Foundation: Glimpses of the U.S.A.","https://eamesfoundation.org/work/glimpses-of-the-u-s-a-film/"],
+ wikiane:["American National Exhibition (Wikipedia)","https://en.wikipedia.org/wiki/American_National_Exhibition"],
+ efthink:["Eames Foundation: Think","https://eamesfoundation.org/?p=3837"],
+ efibm:["Eames Foundation: IBM Pavilion","https://eamesfoundation.org/work/ibm-pavilion-ny-worlds-fair/"],
+ lfexam:["LF Examiner: Graeme Ferguson","https://lfexaminer.com/?p=24831"],
+ encimax:["Encyclopedia.com: IMAX Corporation","https://www.encyclopedia.com/books/politics-and-business-magazines/imax-corporation"],
+ wikilab:["In the Labyrinth (Wikipedia)","https://en.wikipedia.org/wiki/In_the_Labyrinth_(film)"],
+ nasmimax:["Smithsonian Air and Space: IMAX and To Fly!","https://airandspace.si.edu/stories/editorial/imax%E2%80%94not-first-close"],
+ casbsturner:["Stanford CASBS: Turner, The Democratic Surround","https://casbs.stanford.edu/democratic-surround-multimedia-and-american-liberalism-world-war-ii-psychedelic-sixties"],
+ uchicagoturner:["University of Chicago Press: The Democratic Surround","https://press.uchicago.edu/ucp/books/book/chicago/D/bo10509859.html"],
+ wikihammid:["Alexandr Hackenschmied (Wikipedia)","https://en.wikipedia.org/wiki/Alexandr_Hackenschmied"],
+ momahammid:["MoMA: Alexander Hammid, a memorial salute","https://www.moma.org/calendar/film/930"],
+ iffrhammid:["IFFR: Alexander Hackenschmied","https://iffr.com/en/person/alexander-hackenschmied"],
+ wikixenakis:["Iannis Xenakis (Wikipedia)","https://en.wikipedia.org/wiki/Iannis_Xenakis"],
+ artforumxen:["Artforum: Iannis Xenakis","https://www.artforum.com/events/iannis-xenakis-188724/"],
+ wikipolymtl:["Polytope de Montréal (Wikipedia)","https://en.wikipedia.org/wiki/Polytope_de_Montr%C3%A9al"],
+ pompidouxen:["Centre Pompidou: Xenakis's son et lumière","https://www.centrepompidou.fr/en/magazine/article/le-jour-ou-iannis-xenakis-a-investi-le-centre-pompidou-pour-un-son-et-lumiere"],
+ // stage magic
+ dbwiki:["Davenport brothers (Wikipedia)","https://en.wikipedia.org/wiki/Davenport_brothers"],
+ goulden:["Goulden: The Davenport Brothers in Britain (2024)","https://www.davenportcollection.co.uk/wp-content/uploads/2024/10/Davenport-Brothers-in-Britain.-1st-edn.pdf"],
+ kellarwiki:["Harry Kellar (Wikipedia)","https://en.wikipedia.org/wiki/Harry_Kellar"],
+ pbskellar:["PBS: Houdini and Kellar","https://www.pbs.org/wgbh/americanexperience/features/houdini-kellar/"],
+ ibmkellar:["IBM: Kellar, the Dean of Magic","https://magician.org/blog/kellar--the-dean-of-magic?blogid=47"],
+ locira:["Library of Congress: Houdini with Ira Davenport","https://www.loc.gov/item/96520653"],
+ maskwiki:["J. N. Maskelyne (Wikipedia)","https://en.wikipedia.org/wiki/John_Nevil_Maskelyne"],
+ devantwiki:["David Devant (Wikipedia)","https://en.wikipedia.org/wiki/David_Devant"],
+ vcdevant:["Who's Who of Victorian Cinema: Devant","https://www.victorian-cinema.net/devant"],
+ smmmagic:["Science and Media Museum: magic and early cinema","https://blog.scienceandmediamuseum.org.uk/magic-early-british-cinema"],
+ ddconjurer:["D. Devant, Conjurer (Wikipedia)","https://en.wikipedia.org/wiki/D._Devant,_Conjurer"],
+ vernonwiki:["Dai Vernon (Wikipedia)","https://en.wikipedia.org/wiki/Dai_Vernon"],
+ magicanavernon:["Magicana: Dai Vernon (PDF)","https://magicana.ca/sites/default/files/uploaded-files/MAGIC-Vernon%20Bio-screen.pdf"],
+ henningwiki:["Doug Henning (Wikipedia)","https://en.wikipedia.org/wiki/Doug_Henning"],
+ timehenning:["Time (1975): the magic boom","https://content.time.com/time/subscriber/article/0,33009,942941-3,00.html"],
+ henningce:["Canadian Encyclopedia: Doug Henning","https://www.thecanadianencyclopedia.ca/en/article/doug-henning"],
+ // experimental film
+ artforumkand:["Artforum: Kandinsky and the hidden image","https://www.artforum.com/features/kandinsky-and-abstraction-the-role-of-the-hidden-image-210005/"],
+ newcritkand:["New Criterion: Kandinsky and the birth of abstraction","https://newcriterion.com/article/kandinsky-the-birth-of-abstraction/"],
+ utsteiner:["UT Austin thesis: Kandinsky and Steiner","https://repositories.lib.utexas.edu/handle/2152/46637"],
+ qagomarebay:["QAGOMA: Hilla Rebay","https://collection.qagoma.qld.gov.au/stories/1782"],
+ metrebay:["Met Museum: Hilla Rebay","https://www.metmuseum.org/research-centers/leonard-a-lauder-research-center/research-resources/modern-art-index-project/rebay"],
+ caarebay:["caa.reviews: Art of Tomorrow (Rebay)","https://caareviews.org/reviews/817"],
+ cvmthen:["Moritz: Fischinger then and now","https://www.centerforvisualmusic.org/WMThenFromNow.htm"],
+ vmafisch:["Visual Music Archive: Allegretto","https://visualmusicarchive.org/works/w/allegretto.html"],
+ belson:["Moritz: Jordan Belson biography","https://www.centerforvisualmusic.org/Belsonbio.htm"],
+ // light festivals
+ massey:["Massey: Bragdon's Festivals of Song and Light (excerpt)","https://upittpress.org/wp-content/uploads/2019/07/9780822943624exr.pdf"],
+ bragdonts:["Rochester: Bragdon and the Theosophical Society","https://rbscp.lib.rochester.edu/3514"],
+ rochbragdon:["Rochester Public Library: Bragdon's writings","https://libraryweb.org/rochimag/architecture/Architects/Bragdon/Resources.htm"],
+ burno:["Burno: 'Berlin im Licht', 1928 (PDF)","https://quart.uni.wroc.pl/pdf/66/Quart66_01_Burno.pdf"],
+ lyoncap:["Lyon Capitale: how 8 December became a festival","https://www.lyoncapitale.fr/?p=95050"],
+ lzlyon:["Light Zoom Lumière: Fête des Lumières since 1999","https://www.lightzoomlumiere.fr/article/fete-des-lumieres-lyon-france-europe-historique/"],
+ cieluci:["CIE: LUCI, founded 2002 by Lyon","https://www.cie.co.at/about-cie/liaisons/luci-lighting-urban-community-international"],
+ torinoluci:["City of Turin: LUCI","https://relazioni-internazionali.comune.torino.it/inglese/network/luci.shtml"],
+ wikilumiere:["Lumiere festival (Wikipedia)","https://en.wikipedia.org/wiki/Lumiere_(festival)"],
+ coulthart:["John Coulthart: Lumiere at Durham (2009)","https://www.johncoulthart.com/feuilleton/2009/11/17/lumiere-at-durham/"],
+ // live cinema
+ caawilfred:["caa.reviews: Lumia and Thomas Wilfred","https://caareviews.org/reviews/3386"],
+ handmadecassen:["Handmade Cinema: Cassen & Stern","https://handmadecinema.com/filmmaker//rudi-stern-and-jackie-cassen/"],
+ sternint:["Rudi Stern interview (1999)","https://davidsonsfiles.org/rudisterninterview.html"],
+ momalumia:["MoMA: Lumia Suite, Op. 158","https://www.moma.org/documents/moma_press-release_333071.pdf"],
+ griffinlumia:["Griffin: the MoMA lumia room, 1964–81","https://jonathangriffin.org/tag/lumia"],
+ gvwiki:["Global Village Video (Wikipedia)","https://en.wikipedia.org/wiki/Global_Village_Video"],
+ radsoft:["Radical Software 1:1 (1970)","https://www.radicalsoftware.org/volume1nr1/pdf/VOLUME1NR1_0016.pdf"],
+ londonchron:["Barbara London: video chronology","https://www.artforum.com/features/a-chronology-of-video-activity-in-the-united-states-1965-1980-213565/"]
+};
+// ---------- strands ----------
+// root: {has:1|0, note, nm, yr, tx, src}
+// node: {id, nm, yr, tag, d (domain), lane, col, ln (card line), note (panel only), src, ctx (precedent: no links)}
+// link: [from ("root" or id), to, evidence, headline, text, [sources]]
+// evidence: k met or worked together · w saw it in person · b through a book · j joined their society · m modelled on it
+const EDDY={has:1,nm:"The Eddy brothers' séances, Vermont",yr:"1874",tx:"Blavatsky and Olcott meet at this Spiritualist farmhouse. A year later they found the Theosophical Society.",src:["eddywiki","encolcott"]};
+const ST=[
+{t:"Son et lumière",q:"Did the château sound-and-light show grow out of Spiritualism?",
+ root:{has:0,nm:"Expo light festivals, pageants and stereo",tx:"Son et lumière grew from the light-and-water festivals of the Paris expos and the historical pageant, plus new stereo sound. Its only tie to magic is a surname: the inventor's grandfather, the magician Robert-Houdin, died in 1871.",src:["rcms1937","goldmansel"]},
+ n:[{id:"p37",nm:"Fêtes de la lumière, Paris Expo",yr:"1937",tag:"Event",d:"a",lane:0,col:1,ctx:1,ln:"Light, water and fireworks on the Seine, scored by Messiaen, Honegger and others.",note:"The architect Eugène Beaudouin conceived festivals of light that were festivals of music too; a critic saw Baudelaire's dream of 'correspondences' come true. No contact with Chambord is recorded: a precedent, not a link.",src:["rcms1937","wikibelleseaux"]},
+    {id:"prh",nm:"Paul Robert-Houdin, Chambord",yr:"1952",tag:"Person",d:"a",lane:0,col:2,ln:"Curator of Chambord and the magician's grandson; stages the first son et lumière."},
+    {id:"mj",nm:"Maurice Jarre",yr:"1952",tag:"Person",d:"a",lane:1,col:2,ln:"Composer of the Chambord score; later of Lawrence of Arabia."},
+    {id:"gr",nm:"Greenwich",yr:"1957",tag:"Event",d:"a",lane:0,col:3,ln:"Britain's first son et lumière; Charles Laughton narrates the 1958 season."},
+    {id:"jmj",nm:"Jean-Michel Jarre",yr:"1968",tag:"Person",d:"a",lane:1,col:3,ln:"His son; joins Pierre Schaeffer's musique concrète lab, the GRM."},
+    {id:"pc",nm:"Place de la Concorde, Paris",yr:"1979",tag:"Event",d:"a",lane:1,col:4,ln:"Synthesisers, projections on the buildings and fireworks, for about a million people."}],
+ l:[["prh","mj","k","Wrote the music","The first son et lumière, at Chambord in 1952, had music by Maurice Jarre, played over a stereo set-up nobody had heard before.",["trcpaulrh","goldmansel","operajarre"]],
+    ["prh","gr","k","He produced it","Robert-Houdin produced Britain's first son et lumière, at Greenwich in 1957. The Ministry of Works brought it back for 1958.",["tcsel","hansardgr"]],
+    ["mj","jmj","k","Father and son","Maurice left for the US when Jean-Michel was five, and they hardly met until he was 18. A tape recorder of his father's started him on sound, and his father pointed him to the GRM.",["wikijmj","qobuzjmj"]],
+    ["jmj","pc","k","Staged it","His first open-air concert: alone on stage with synthesisers, projections and fireworks. He says everything started from it.",["jmjconcorde","europe1jmj"]]],
+ v:"<b>No Spiritualist root.</b> Son et lumière is heritage storytelling with new sound. The magic link is a family name only; the legacy runs through music, as one family takes the form from a château to a city square."},
+
+{t:"Multimedia AV shows",q:"Did the expo multi-screen show come from occult film, or from training and propaganda?",
+ root:{has:0,nm:"The Bauhaus, the army and the sponsors",tx:"Fred Turner traces the multi-screen 'surround' to Bauhaus émigrés and US social scientists who wanted media that made democratic citizens, not fascist crowds. The hardware came from war training: Waller's gunnery trainer became Cinerama.",src:["casbsturner","uchicagoturner","wikicinerama"]},
+ n:[{id:"mes",nm:"Olivier Messiaen",yr:"1937",tag:"Person",d:"a",lane:2,col:1,ln:"Writes Fête des belles eaux for six ondes Martenot, for the Paris Expo's festivals of light and water.",note:"A devout Catholic, not a Theosophist. The piece accompanied the fountains and fireworks on the Seine.",src:["wikibelleseaux","rcms1937"]},
+    {id:"ham",nm:"Alexander Hammid",yr:"1943",tag:"Person",d:"a",lane:1,col:1,ln:"Czech avant-gardist; Meshes of the Afternoon with Maya Deren; wartime US government films.",note:"Born Hackenschmied, his Aimless Walk (1930) began Czech avant-garde film. Married to Deren 1942–47; directed films for the Office of War Information.",src:["wikihammid","momahammid"]},
+    {id:"sl",nm:"The Sample Lesson",yr:"1952–53",tag:"Event",d:"a",lane:0,col:1,ln:"Nelson, Charles Eames and Girard teach with film, slides, music, narration and smells.",note:"A teaching experiment for the University of Georgia, later run at UCLA.",src:["hmlesson","efsl"]},
+    {id:"xen",nm:"Iannis Xenakis",yr:"1958",tag:"Person",d:"a",lane:2,col:2,ln:"Designs the Philips Pavilion at the Brussels Expo for Le Corbusier's office: Varèse's Poème électronique."},
+    {id:"gl",nm:"Glimpses of the USA, Moscow",yr:"1959",tag:"Event",d:"a",lane:0,col:2,ln:"A US government commission: 2,200 images on seven screens in Fuller's dome."},
+    {id:"th",nm:"Think, IBM Pavilion",yr:"1964",tag:"Event",d:"a",lane:0,col:3,ln:"22 screens in an egg-shaped theatre at the New York World's Fair."},
+    {id:"tba",nm:"To Be Alive!",yr:"1964",tag:"Film",d:"a",lane:1,col:2,ln:"Three screens for Johnson Wax at the same fair; it wins an Oscar."},
+    {id:"pol",nm:"Polytopes",yr:"1967–78",tag:"Events",d:"a",lane:2,col:3,ln:"His own light-and-sound shows: 1,200 strobes at Expo 67, then the Roman baths at Cluny, Paris."},
+    {id:"imx",nm:"IMAX",yr:"1970",tag:"Format",d:"a",lane:1,col:3,ln:"Expo 67's multi-screen makers switch to one giant frame; To Fly! follows in 1976."}],
+ l:[["mes","xen","k","His teacher","Xenakis, then Le Corbusier's engineer, studied with Messiaen in the early 1950s; Messiaen urged him to build his music on his mathematics and architecture.",["wikixenakis","artforumxen"]],
+    ["sl","gl","k","Same designers","Nelson and the Eameses again: Nelson worked on the Moscow exhibition, and the Eames Office made its centrepiece for the US Information Agency.",["efsl","efglimpses","wikiane"]],
+    ["gl","th","k","Same studio, now for IBM","The Eames Office designed the exhibits and films of IBM's pavilion, with Think on 14 large and 8 small screens.",["efthink","efibm"]],
+    ["ham","tba","k","Co-directed it","Hammid made To Be Alive! with Francis Thompson; it won the Academy Award for documentary short.",["iffrhammid","lfexam"]],
+    ["xen","pol","k","Made them","After the Philips Pavilion came his 'polytopes': 1,200 strobe lights on cables at Expo 67, then a sound-and-light show in the Roman baths at Cluny (1972–74) seen by over 200,000 people.",["wikipolymtl","pompidouxen"]],
+    ["tba","imx","k","Advised its founders","Graeme Ferguson turned to Thompson and Hammid as IMAX developed; they produced its landmark film To Fly! (1976). Kroitor's Labyrinth team co-founded it.",["encimax","lfexam","nasmimax"]]],
+ v:"<b>No Spiritualist root: three separate families.</b> Teaching and Cold War propaganda (the Eameses), the avant-garde and wartime documentary (Hammid), and modern music, from Messiaen's 1937 water festival to Xenakis's light shows. As Turner argues, the surround was a liberal project, not an occult one."},
+
+{t:"Stage magic shows",q:"How did the séance cabinet become the magic show, and then film?",
+ root:{has:1,nm:"Ira & William Davenport",yr:"1864",tx:"Buffalo brothers tied up inside a 'spirit cabinet' while instruments play; billed as Spiritualist mediums, they tour Britain in 1864–65.",src:["dbwiki","goulden"]},
+ n:[{id:"mas",nm:"John Nevil Maskelyne",yr:"1865",tag:"Person",d:"m",lane:1,col:1,ln:"Cheltenham magician; runs the Egyptian Hall, 'England's Home of Mystery'."},
+    {id:"kel",nm:"Harry Kellar",yr:"1869",tag:"Person",d:"m",lane:0,col:1,ln:"Their assistant, then manager; later the 'Dean of American magicians'."},
+    {id:"dev",nm:"David Devant",yr:"1896",tag:"Person",d:"m",lane:1,col:2,ln:"Buys Robert Paul's projector and shows films at the Egyptian Hall from March 1896."},
+    {id:"mel",nm:"Georges Méliès",yr:"1896",tag:"Person",d:"a",lane:1,col:3,ln:"Magician who owns the Théâtre Robert-Houdin; turns a Paul projector into his first camera."},
+    {id:"hou",nm:"Harry Houdini",yr:"1910",tag:"Person",d:"m",lane:0,col:2,ln:"Escape artist; meets Ira Davenport in 1910; later the great enemy of fake mediums.",src:["locira"]},
+    {id:"ver",nm:"Dai Vernon",yr:"1922",tag:"Person",d:"m",lane:0,col:3,ln:"Canadian card magician, 'the Professor'; later the resident guru of the Magic Castle, Hollywood."},
+    {id:"hen",nm:"Doug Henning",yr:"1974",tag:"Person",d:"m",lane:0,col:4,ln:"Broadway's The Magic Show (1974) and live NBC specials; later leaves magic for Transcendental Meditation.",src:["henningce"]}],
+ l:[["root","mas","w","Saw the act (his account)","Maskelyne said he saw through the brothers' cabinet séance at Cheltenham in March 1865 and built his own. Only his family's account puts him there.",["goulden","dbwiki"]],
+    ["root","kel","k","Worked for them","Kellar joined the brothers in 1869 as assistant, then business manager, and learned their rope tie. He left in 1873.",["kellarwiki","pbskellar"]],
+    ["mas","dev","k","Hired him, then partners","Devant joined the Egyptian Hall company in 1893 and became Maskelyne's partner in 1905.",["maskwiki","devantwiki","vcdevant"]],
+    ["dev","mel","k","Sold him the projector","Devant sold Méliès Paul projectors in 1896; in 1897 Méliès filmed Devant performing.",["smmmagic","vcdevant","ddconjurer"]],
+    ["kel","hou","k","His mentor","Houdini's hero and friend: in 1917 he coaxed Kellar out of retirement for a benefit at the Hippodrome.",["pbskellar","ibmkellar"]],
+    ["hou","ver","k","Fooled him","At a magicians' banquet in Chicago on 6 February 1922, Vernon fooled Houdini with the same card trick again and again. He billed himself 'The Man Who Fooled Houdini'.",["vernonwiki","magicanavernon"]],
+    ["ver","hen","k","Taught him","Henning won a Canada Council grant in 1971 to study magic, and studied with Vernon at the Magic Castle, then with Slydini.",["henningwiki","timehenning"]]],
+ v:"<b>A real Spiritualist root, first-hand except one claim.</b> The spirit cabinet split two ways: into escapology, which turned against the mediums, and into the magic theatre that showed the first films. By 1974 magic was a Broadway hit again, and its star later left it for meditation."},
+
+{t:"Experimental film",q:"Did Theosophy shape abstract film?",
+ root:EDDY,
+ n:[{id:"kan",nm:"Wassily Kandinsky",yr:"1911",tag:"Person",d:"c",lane:0,col:1,ln:"On the Spiritual in Art: painting should act on the soul as music does."},
+    {id:"reb",nm:"Hilla Rebay",yr:"1930",tag:"Person",d:"o",lane:0,col:2,ln:"Painter steeped in Theosophy; Guggenheim's adviser; runs the Museum of Non-Objective Painting from 1939.",src:["caarebay"]},
+    {id:"fis",nm:"Oskar Fischinger",yr:"1938",tag:"Person",d:"a",lane:0,col:3,ln:"German abstract film-maker stuck in Hollywood; her grants keep him working through the war."},
+    {id:"bel",nm:"Jordan Belson",yr:"1957–73",tag:"Person",d:"a",lane:0,col:4,ln:"Vortex concerts (1957–59); then Samadhi (1967) and Chakra (1972), films of meditation states.",src:["belson"]}],
+ l:[["root","kan","b","Read the Theosophists","His book calls Theosophy one of the great spiritual movements of the age and names Blavatsky; he took notes on Rudolf Steiner's Theosophy.",["artforumkand","newcritkand","utsteiner"]],
+    ["kan","reb","k","Met at the Bauhaus","Arp gave Rebay Kandinsky's book in 1915. In July 1930 she took Solomon Guggenheim to meet him at Dessau, and bought his work.",["qagomarebay","metrebay"]],
+    ["reb","fis","k","Her grants","They met in New York in 1938. Through the war her grants paid for his films, on her terms.",["cvmthen","vmafisch"]],
+    ["fis","bel","w","Saw his films","Belson saw Fischinger's films at Art in Cinema, San Francisco, in 1946, and turned to the moving abstract image.",["belson"]]],
+ v:"<b>A Theosophical line, with one step through a book.</b> Kandinsky got his Theosophy from reading; after him every step is personal or in the room. Rebay's Guggenheim money put the idea of spiritual, non-objective art behind abstract film. Crowley's line to Kenneth Anger is separate: it starts in ritual magic."},
+
+{t:"Light festivals",q:"Did the 20th-century light festival come from the occult?",
+ root:Object.assign({},EDDY,{note:"Root of a side-branch only",tx:"Blavatsky and Olcott meet here and found the Theosophical Society. One festival-maker joins it; the civic festivals have no such root."}),
+ n:[{id:"sal",nm:"Festivals of Song and Light",yr:"1915–18",tag:"Event",d:"o",lane:0,col:1,ln:"Claude Bragdon's lantern-lit community sings; about 60,000 people in Central Park in 1916.",note:"The lanterns used Bragdon's 'projective ornament', built on the Theosophical fourth dimension. No later festival is shown to descend from them.",src:["massey"]},
+    {id:"ber",nm:"Berlin im Licht",yr:"1928",tag:"Event",d:"a",lane:1,col:1,ctx:1,ln:"Four nights of electric light to sell the city, run by artists, architects and business.",note:"Electricity festivals followed in Prague and Amsterdam. No occult connection, and no contact with later festivals, is recorded.",src:["burno"]},
+    {id:"par",nm:"Fêtes de la lumière, Paris Expo",yr:"1937",tag:"Event",d:"a",lane:1,col:2,ctx:1,ln:"Beaudouin's nightly festivals of light, water and music on the Seine.",note:"Eighteen composers wrote scores, Messiaen among them; a critic saw Baudelaire's dream of 'correspondences' come true. A precedent, not a link.",src:["rcms1937","wikibelleseaux"]},
+    {id:"lyo",nm:"Fête des Lumières, Lyon",yr:"1999",tag:"Event",d:"a",lane:1,col:3,ln:"Candles for the Virgin Mary since 1852; a city lighting plan in 1989; an art festival from 1999.",note:"Catholic in origin: Michel Noir's Plan Lumière (1989), then Raymond Barre's four-day festival (1999). No contact with the earlier festivals is recorded.",src:["lyoncap","lzlyon"]},
+    {id:"luc",nm:"LUCI network",yr:"2002",tag:"Group",d:"a",lane:1,col:4,ln:"Lyon's international club of 'cities of light'; Turin's Luci d'Artista joins at once."},
+    {id:"dur",nm:"Lumiere, Durham",yr:"2009",tag:"Event",d:"a",lane:0,col:4,ln:"Artichoke's light festival for Durham; it becomes Britain's largest."}],
+ l:[["root","sal","j","Joined the Society","Bragdon was an active member of the Theosophical Society, and wrote a short life of its president, Annie Besant (1909).",["bragdonts","rochbragdon"]],
+    ["lyo","luc","k","Lyon founded it","LUCI was set up in 2002 on the City of Lyon's initiative, and meets at the festival every year.",["cieluci","torinoluci"]],
+    ["lyo","dur","m","Modelled on it","Artichoke's Helen Marriage and Nicky Webb loosely modelled Lumiere on Lyon's festival.",["wikilumiere","coulthart"]]],
+ v:"<b>A Theosophical side-branch, not the root.</b> Bragdon's festivals were openly Theosophical, but none of the later ones is shown to descend from them; his light work goes on in strand 6. The festivals that spread came from the Catholic calendar, the electricity industry and city marketing."},
+
+{t:"Live cinema performances",q:"Did live projection performance come out of the séance room?",
+ root:EDDY,
+ n:[{id:"bra",nm:"Claude Bragdon & the Prometheans",yr:"1919",tag:"Group",d:"o",lane:0,col:1,ln:"Theosophist architect whose group sets out to make light an art."},
+    {id:"wil",nm:"Thomas Wilfred",yr:"1922",tag:"Person",d:"a",lane:0,col:2,ln:"Plays the Clavilux live and names its art 'lumia'. MoMA shows his Lumia Suite from 1964 to 1981."},
+    {id:"cs",nm:"Jackie Cassen & Rudi Stern",yr:"1966",tag:"People",d:"a",lane:0,col:3,ln:"Make the live projections for Leary's psychedelic celebrations in New York."},
+    {id:"gv",nm:"Global Village, New York",yr:"1969",tag:"Group",d:"a",lane:0,col:4,ln:"Video theatre: walls of monitors, with tapes switched live."},
+    {id:"vt",nm:"Vision and Television",yr:"1970",tag:"Event",d:"a",lane:0,col:5,ln:"The first US museum show of video, at the Rose Art Museum."}],
+ l:[["root","bra","j","Joined the Society","Bragdon was an active member of the Theosophical Society, and wrote a short life of its president, Annie Besant (1909).",["bragdonts","rochbragdon"]],
+    ["bra","wil","k","Built it together","Wilfred built the Clavilux inside the Prometheans, with Bragdon, in 1919–22.",["caawilfred"]],
+    ["wil","cs","w","Saw the work","Cassen was directly influenced by lumia; Stern remembered the Lumia Suite at MoMA. No meeting with Wilfred is recorded.",["handmadecassen","sternint","momalumia","griffinlumia"]],
+    ["cs","gv","k","Co-founded it","Stern co-founded Global Village in 1969, naming it after McLuhan, whom he had met at Millbrook.",["sternint","gvwiki"]],
+    ["gv","vt","k","Exhibited there","Global Village built a walk-in monitor for the show, with a live operator switching inside.",["sternint","radsoft","londonchron"]]],
+ v:"<b>Theosophical at the start, then first-hand almost all the way.</b> Lumia was born in a Theosophist circle; the light-show makers knew it from MoMA rather than from Wilfred, and took live projection on into video theatre. The other big live tradition, liquid light, has no occult root (proof chain 5)."}
+];
+// ---------- look ----------
+const DOM={o:["Occult & Theosophy","#5b2a86"],c:["Art & ideas","#c27a12"],m:["Stage magic","#7a5230"],a:["Light, film & AV","#2f6db5"]};
+const EV={k:["Met or worked together","#1D9E75",""],w:["Saw it in person","#0e8fa0","10 6"],b:["Through a book","#8a8780","3 7"],j:["Joined their society","#8b5fb8","14 5 3 5"],m:["Modelled on it","#b07d3a","1 7"]};
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+let si=0,step=0,focus=null;
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080),st=$("stage");st.style.transform=`scale(${k})`;st.style.left=((innerWidth-1920*k)/2)+"px";st.style.top=((innerHeight-1080*k)/2)+"px";}
+addEventListener("resize",fit);
+$("pick").innerHTML=ST.map((c,i)=>`<option value="${i}">${i+1}. ${esc(c.t)}</option>`).join("");
+$("legend").innerHTML=Object.values(EV).map(([t,c,da])=>`<span><svg width="38" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="${c}" stroke-width="4" stroke-dasharray="${da}" stroke-linecap="round"/></svg>${t}</span>`).join("")
+ +`<span><i class="dash"></i>Precedent, no contact shown</span><span class="sep"></span>`+Object.values(DOM).map(([t,c])=>`<span><i style="background:${c}"></i>${t}</span>`).join("");
+const srcs=k=>(k||[]).filter(x=>S[x]).map(x=>`<a href="${S[x][1]}" target="_blank" rel="noopener">${esc(S[x][0])}</a>`).join("");
+let G={};
+function geom(c){
+ const L=Math.max(...c.n.map(d=>d.lane))+1,C=Math.max(...c.n.map(d=>d.col));
+ const M=80,RW=270,RG=66,X1=M+RW+RG,R=1840-X1,GP=62,cw=Math.min(L>2?440:330,(R-(C-1)*GP)/C),tot=C*cw+(C-1)*GP,x0=X1+(R-tot)/2;
+ const arcs=c.l.some(l=>{const s=c.n.find(d=>d.id===l[0]),t=c.n.find(d=>d.id===l[1]);return s&&t&&s.lane===t.lane&&s.lane===L-1&&L>1&&c.n.some(d=>d.lane===s.lane&&d.col>Math.min(s.col,t.col)&&d.col<Math.max(s.col,t.col));});
+ const A=230,B=arcs?668:688,LG=L>2?28:42,ch=Math.min(262,(B-A-(L-1)*LG)/L),th=L*ch+(L-1)*LG,y0=A+(B-A-th)/2,rh=L>1?th:Math.max(th,318),ry=y0-(rh-th)/2;
+ return {L,C,M,RW,cw,x0,ch,y0,th,rh,ry,LG,GP,colX:k=>x0+(k-1)*(cw+GP),laneY:l=>y0+l*(ch+LG)};}
+function linkPath(c,l){
+ const g=G,s=l[0]==="root"?null:c.n.find(d=>d.id===l[0]),t=c.n.find(d=>d.id===l[1]);
+ const mid=d=>g.laneY(d.lane)+g.ch/2;
+ if(!s){const y=mid(t),x1=g.M+g.RW+4,x2=g.colX(t.col)-6;return {d:`M${x1},${y} L${x2},${y}`,bx:(x1+x2)/2,by:y};}
+ if(s.lane===t.lane){
+  const y=mid(s),between=c.n.some(d=>d.lane===s.lane&&d.col>Math.min(s.col,t.col)&&d.col<Math.max(s.col,t.col));
+  if(!between){const x1=g.colX(s.col)+g.cw+4,x2=g.colX(t.col)-6;return {d:`M${x1},${y} L${x2},${y}`,bx:(x1+x2)/2,by:y};}
+  const below=s.lane===g.L-1&&g.L>1,yE=below?g.laneY(s.lane)+g.ch+4:g.laneY(s.lane)-4,dy=below?34:-34;
+  const x1=g.colX(s.col)+g.cw*.72,x2=g.colX(t.col)+g.cw*.28;
+  return {d:`M${x1},${yE} C${x1},${yE+dy*1.3} ${x2},${yE+dy*1.3} ${x2},${yE+(below?6:-6)}`,bx:(x1+x2)/2,by:yE+dy*.98};}
+ if(s.col===t.col){const x=g.colX(s.col)+g.cw/2,dn=s.lane<t.lane,y1=dn?g.laneY(s.lane)+g.ch+4:g.laneY(s.lane)-4,y2=dn?g.laneY(t.lane)-6:g.laneY(t.lane)+g.ch+6;
+  return {d:`M${x},${y1} L${x},${y2}`,bx:x,by:(y1+y2)/2};}
+ const up=t.lane<s.lane,x1=g.colX(s.col)+g.cw-34,y1=up?g.laneY(s.lane)-4:g.laneY(s.lane)+g.ch+4,x2=g.colX(t.col)-6,y2=mid(t);
+ return {d:`M${x1},${y1} C${x1},${y2} ${x1},${y2} ${x2},${y2}`,bx:x1,by:(y1+y2)/2+(up?8:-8)};}
+function shown(c,i){return i<step;}
+function linkShown(c,l){const ti=c.n.findIndex(d=>d.id===l[1]),fi=l[0]==="root"?-1:c.n.findIndex(d=>d.id===l[0]);return shown(c,ti)&&(fi<0||shown(c,fi));}
+function panel(c){
+ let f=focus;
+ if(!f)f=step===0?{root:1}:(step>c.n.length?{all:1}:{node:step-1});
+ if(f.all){return `<div class="pn" style="border-top-color:#c9c6bc"><div class="ev" style="color:#8a8780">The whole strand</div><div class="h">${c.l.length} link${c.l.length>1?"s":""}, ${c.n.length} steps</div><div class="tx" style="font-size:19px">Click a card or a numbered link to see its evidence and sources, or press ⟲ to step through from the start.</div></div>`;}
+ if(f.root){const r=c.root;return `<div class="pn" style="border-top-color:${r.has?"#5b2a86":"#b9b6ab"}"><div class="ev" style="color:${r.has?"#5b2a86":"#7d7a72"}">${r.has?"Spiritualist root":"No Spiritualist root found"}${r.note?" · "+esc(r.note):""}</div><div class="h">${esc(r.nm)}${r.yr?" ("+esc(r.yr)+")":""}</div><div class="tx" style="font-size:19px">${esc(r.tx)}</div><div class="src">${srcs(r.src)}</div></div>`;}
+ if(f.link!=null)return linkPanel(c,f.link);
+ const d=c.n[f.node],inc=c.l.map((l,i)=>[l,i]).filter(([l])=>l[1]===d.id);
+ if(inc.length){let h=inc.map(([l,i])=>linkPanel(c,i,d.src&&inc.length===1?d.src:null)).join("");return h;}
+ return `<div class="pn" style="border-top-color:#c9c6bc"><div class="ev" style="color:#8a8780">${d.ctx?"Precedent · no contact shown":"A new start · no earlier contact shown"}</div><div class="h">${esc(d.nm)} (${esc(d.yr)})</div><div class="tx" style="font-size:19px">${esc(d.note||d.ln)}</div><div class="src">${srcs(d.src)}</div></div>`;}
+function linkPanel(c,i,extra){const l=c.l[i],[t,col]=EV[l[2]];
+ return `<div class="pn" style="border-top-color:${col}"><div class="ev" style="color:${col}">${i+1} · ${t}</div><div class="h">${esc(l[3])}</div><div class="tx" style="font-size:19px">${esc(l[4])}</div><div class="src">${srcs(l[5])}${extra?`<span>· card:</span>`+srcs(extra):""}</div></div>`;}
+function draw(){
+ const c=ST[si],n=c.n.length;G=geom(c);const g=G,two=g.L>1,three=g.L>2,nfs=three?20:two?23:25,lfs=three?15.5:two?17:18,yfs=three?19:two?22:24;
+ $("title").textContent=`${si+1} · ${c.t}`;$("q").textContent=c.q;$("count").textContent=`${si+1} of ${ST.length}`;$("pick").value=si;
+ const r=c.root,rsel=focus&&focus.root?" sel":"";
+ let h=`<div class="card root ${r.has?"has":"none"}${rsel}" data-r="1" style="left:${g.M}px;top:${g.ry}px;width:${g.RW}px;height:${g.rh}px">`
+  +(r.has?`<div class="bar" style="background:#5b2a86;margin:0 -22px 14px"></div>`:"")
+  +`<div class="rl">${r.has?"Spiritualist root":"No Spiritualist root found"}</div>${r.note?`<div class="nt">${esc(r.note)}</div>`:""}`
+  +(r.yr?`<div class="yr" style="font-size:${yfs}px;color:#5b2a86">${esc(r.yr)}</div>`:"")
+  +`<div class="nm" style="font-size:${two?24:25}px">${esc(r.nm)}</div><div class="ln" style="font-size:17px">${esc(r.tx)}</div></div>`;
+ c.n.forEach((d,i)=>{const col=DOM[d.d][1],sel=focus&&focus.node===i?" sel":"";
+  h+=`<div class="card${d.ctx?" ctx":""}${shown(c,i)?"":" dim"}${sel}" data-i="${i}" style="left:${g.colX(d.col)}px;top:${g.laneY(d.lane)}px;width:${g.cw}px;height:${g.ch}px">`
+   +`<div class="bar" style="background:${col}${d.ctx?";opacity:.55":""}"></div><div class="hd"><div class="yr" style="font-size:${yfs}px;color:${col}">${esc(d.yr)}</div><div class="tag">${esc(d.tag)}</div></div>`
+   +`<div class="nm" style="font-size:${nfs}px">${esc(d.nm)}</div><div class="ln" style="font-size:${lfs}px">${esc(d.ln)}</div></div>`;});
+ $("cards").innerHTML=h;
+ let svg="<defs>"+Object.entries(EV).map(([k,[t,col]])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker>`).join("")+"</defs>";
+ c.l.forEach((l,i)=>{const [t,col,da]=EV[l[2]],p=linkPath(c,l),op=linkShown(c,l)?1:0,sel=focus&&focus.link===i;
+  svg+=`<g opacity="${op}" style="transition:opacity .35s"><path d="${p.d}" fill="none" stroke="${col}" stroke-width="5" stroke-dasharray="${da}" stroke-linecap="round" marker-end="url(#ah${l[2]})"/>`
+   +`<g class="bd" data-l="${i}"><circle cx="${p.bx}" cy="${p.by}" r="${sel?19:16}" fill="${sel?col:"#fff"}" stroke="${col}" stroke-width="3"/><text x="${p.bx}" y="${p.by+6}" text-anchor="middle" font-size="17" font-weight="700" fill="${sel?"#fff":col}">${i+1}</text></g></g>`;});
+ $("links").innerHTML=svg;
+ $("panel").innerHTML=panel(c);
+ $("verdict").innerHTML=c.v;$("verdict").className=step>=n?"":"hide";
+ $("bprev").disabled=step<=0;$("bnext").disabled=step>=n;
+ try{history.replaceState(null,"","#"+(si+1));}catch(e){}}
+function setStrand(i,all){si=(i+ST.length)%ST.length;step=all?ST[si].n.length+1:0;focus=null;draw();}
+function move(d){const n=ST[si].n.length;step=Math.max(0,Math.min(n,Math.min(step,n)+d));focus=null;draw();}
+$("cards").addEventListener("click",e=>{const el=e.target.closest(".card");if(!el)return;
+ if(el.dataset.r)focus={root:1};else{const i=+el.dataset.i;if(!shown(ST[si],i))return;focus={node:i};}draw();});
+$("links").addEventListener("click",e=>{const b=e.target.closest(".bd");if(!b)return;focus={link:+b.dataset.l};draw();});
+$("pick").onchange=e=>{setStrand(+e.target.value,true);e.target.blur();};
+$("bstart").onclick=()=>{step=0;focus=null;draw();};$("bprev").onclick=()=>move(-1);$("bnext").onclick=()=>move(1);
+function full(){if(document.fullscreenElement)document.exitFullscreen();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}
+$("bfull").onclick=full;
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;
+ if(["ArrowRight"," ","PageDown"].includes(e.key)){e.preventDefault();move(1);}
+ else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();move(-1);}
+ else if(e.key==="ArrowDown"){e.preventDefault();setStrand(si+1,true);}
+ else if(e.key==="ArrowUp"){e.preventDefault();setStrand(si-1,true);}
+ else if(e.key==="Home"){step=0;focus=null;draw();}
+ else if(e.key==="End"){step=ST[si].n.length;focus=null;draw();}
+ else if(e.key==="Escape"){focus=null;draw();}
+ else if(e.key==="f"||e.key==="F")full();});
+const hh=parseInt((location.hash||"").slice(1),10);
+fit();setStrand(hh>=1&&hh<=ST.length?hh-1:0,true);
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas through the ages</title>
+<style>
+html,body{margin:0;height:100%;background:#ecE9e1;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f1e1c}
+#stage{user-select:none;-webkit-user-select:none;position:absolute;left:0;top:0;width:1920px;height:1080px;background:#fbfaf7;transform-origin:0 0;overflow:hidden;touch-action:none}
+#top{position:absolute;left:80px;right:80px;top:34px;display:flex;justify-content:space-between;align-items:center;z-index:3000}
+#kick{font-size:17px;letter-spacing:.12em;text-transform:uppercase;color:#8a8780}
+#kick a{color:#8a8780;text-decoration:none;border-bottom:1px dotted #b5b2a8;letter-spacing:0;text-transform:none;margin-left:14px}
+#ctl{display:flex;gap:10px;align-items:center}
+#ctl select,#ctl button{font:inherit;font-size:19px;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1f1e1c}
+#ctl button{cursor:pointer;background:#f1efe8;min-width:46px}
+#ctl button:disabled{opacity:.35;cursor:default}
+#hint{position:absolute;right:80px;top:86px;font-size:14px;color:#a3a198;z-index:3000}
+#title{position:absolute;left:80px;right:480px;top:96px;font-size:46px;font-weight:600;line-height:1.1;z-index:3000}
+#q{position:absolute;left:80px;right:80px;top:160px;font-size:25px;color:#6b6a65;line-height:1.35;z-index:3000}
+#scene{position:absolute;left:0;top:205px;width:1920px;height:520px;cursor:grab}
+#scene.drag{cursor:grabbing}
+#threads{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
+.card{position:absolute;left:0;top:0;width:236px;box-sizing:border-box;background:#fff;border-radius:11px;box-shadow:0 2px 8px rgba(0,0,0,.12);padding:0 14px 10px;cursor:pointer;transform-origin:50% 50%;will-change:transform,opacity}
+.card .bar{height:7px;margin:0 -14px 8px;border-radius:11px 11px 0 0}
+.card .yr{font-size:17px;font-weight:600}
+.card .nm{font-size:19px;font-weight:600;line-height:1.18;margin-top:2px}
+.card.mem .yr::after{content:" · from memory";font-size:12px;font-weight:500;color:#a3a198;letter-spacing:.02em}
+.card.sel{outline:3px solid #1f1e1c;outline-offset:2px}
+#panel{position:absolute;left:80px;right:80px;top:736px;height:174px;box-sizing:border-box;display:flex;gap:18px;z-index:3000}
+.pn{user-select:text;-webkit-user-select:text;background:#fff;border-radius:10px;border-top:5px solid #c9c6bc;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:10px 18px;overflow:hidden;min-width:0}
+.pn.l{flex:1.15}.pn.r{flex:1}
+.pn .ev{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a8780}
+.pn .h{font-size:22px;font-weight:600;margin:2px 0 4px;line-height:1.2}
+.pn .tx{font-size:18px;line-height:1.38;color:#3d3c38}
+.pn .src{margin-top:6px;font-size:14px;line-height:1.35}
+.pn .src a{color:#2f6db5;text-decoration:none;border-bottom:1px solid #c4d4ee;margin-right:10px}
+.lk{font-size:16px;line-height:1.36;color:#3d3c38;margin:3px 0 6px}
+.lk i{font-style:normal;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:9px;color:#fff;margin-right:6px;white-space:nowrap}
+.lk .lks{font-size:13px}
+.lk .lks a{color:#2f6db5;text-decoration:none;border-bottom:1px solid #c4d4ee;margin-left:6px}
+#verdict{position:absolute;left:80px;right:80px;top:920px;background:#f1efe8;border-radius:12px;padding:13px 24px;font-size:20px;line-height:1.42;transition:opacity .35s;z-index:3000}
+#verdict b{font-weight:600}
+#legend{position:absolute;left:80px;right:80px;bottom:18px;display:flex;gap:16px;font-size:15px;color:#6b6a65;align-items:center;flex-wrap:wrap;z-index:3000}
+#legend span{display:inline-flex;gap:7px;align-items:center}
+#legend i{display:inline-block;width:13px;height:13px;border-radius:3px}
+#legend .sep{width:1px;height:18px;background:#d3d1c7}
+.hide{opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+ <div id="top">
+  <div id="kick">Ideas through the ages · <span id="count"></span><a href="strands.html">Strands</a><a href="chains.html">Proof chains</a></div>
+  <div id="ctl">
+   <select id="pick" aria-label="Choose an idea"></select>
+   <button id="bstart" title="Overview (Home)">⟲</button>
+   <button id="bprev" title="Back one step (←)">◀</button>
+   <button id="bnext" title="Next moment (→ or space)">▶</button>
+   <button id="bflat" title="Switch between the 3D spiral and a flat view (V)">Flat</button>
+   <button id="bfull" title="Full screen (F)">⛶</button>
+  </div>
+ </div>
+ <div id="hint">drag to turn · ← → step · ↑ ↓ idea · V flat/3D · F full screen</div>
+ <div id="title"></div>
+ <div id="q"></div>
+ <div id="scene"></div>
+ <svg id="threads" viewBox="0 0 1920 1080"></svg>
+ <div id="cards"></div>
+ <div id="panel"></div>
+ <div id="verdict"></div>
+ <div id="legend"></div>
+</div>
+<script>
+{
+// ---------- sources ----------
+const S={
+ dann:["Dann, Bright Colors Falsely Seen (Yale)","https://yalebooks.yale.edu/9780300206395/bright-colors-falsely-seen"],
+ castel:["Cabinet: Castel's ocular harpsichord","https://cabinetmagazine.org/issues/22/peel.php"],
+ castelwiki:["Louis Bertrand Castel (Wikipedia)","https://en.wikipedia.org/wiki/Louis_Bertrand_Castel"],
+ saintdenis:["On Light Music Before Cinema (eContact!)","https://econtact.ca/19_2/saintdenis_lightmusic.html"],
+ davisAJ:["Andrew Jackson Davis (Wikipedia)","https://en.wikipedia.org/wiki/Andrew_Jackson_Davis"],
+ scriabinmyth:["'Scriabin's Synaesthesia: The Legend, the Evidence' (Cambridge)","https://www.cambridge.org/core/books/abs/demystifying-scriabin/scriabins-synaesthesia-the-legend-the-evidence-and-its-implications-for-multimedia-counterpoint/C0C1B75D9E4B1D02D9A78C29DCFDCB62"],
+ gawboy:["Gawboy & Townsend, Scriabin and the Possible","https://mtosmt.org/issues/mto.12.18.2/mto.12.18.2.gawboy_townsend.html"],
+ ringbom:["Introvigne on Ringbom and Kandinsky (CESNUR)","https://www.cesnur.org/2015/Ringbom.pdf"],
+ rcms1937:["1937 review of Beaudouin's fêtes de la lumière (PDF)","https://pmf.regroupement-rcms.org/media/public/documents/ART-DURb-1937-21.pdf"],
+ wikibelleseaux:["Fête des belles eaux (Wikipedia)","https://en.wikipedia.org/wiki/F%C3%AAte_des_belles_eaux"],
+ ircammes:["IRCAM: Olivier Messiaen","https://brahms.ircam.fr/en/olivier-messiaen"],
+ azema:["Azéma & Rivère, 'Animation in Palaeolithic art' (Antiquity, 2012)","https://antiquity.ac.uk/projgall/azema332/"],
+ nprazema:["NPR: a flicker of inspiration (2012)","https://www.npr.org/transcripts/155169614"],
+ robertson:["Étienne-Gaspard Robert (Wikipedia)","https://en.wikipedia.org/wiki/%C3%89tienne-Gaspard_Robert"],
+ gunningphan:["Gunning, Illusions Past and Future: the Phantasmagoria","https://mediaarthistory.org/refresh/Programmatic%20key%20texts/ThomasGunning.htm"],
+ eddywiki:["Eddy Brothers (Wikipedia)","https://en.wikipedia.org/wiki/Eddy_Brothers"],
+ dbwiki:["Davenport brothers (Wikipedia)","https://en.wikipedia.org/wiki/Davenport_brothers"],
+ eleusis:["Rites of Eleusis (Wikipedia)","https://en.wikipedia.org/wiki/Rites_of_Eleusis"],
+ waddell:["Leila Waddell, violinist of the Rites","https://www.infinite-women.com/women/leila-waddell/"],
+ lindsay:["Lindsay, The Art of the Moving Picture (Gutenberg)","https://www.gutenberg.org/ebooks/13029"],
+ canudo:["Ricciotto Canudo (Wikipedia)","https://en.wikipedia.org/wiki/Ricciotto_Canudo"],
+ brightderen:["Bright Lights: Deren's Divine Horsemen","https://brightlightsfilm.com/?p=35111"],
+ wikidivine:["Divine Horsemen (Wikipedia)","https://en.wikipedia.org/wiki/Divine_Horsemen:_The_Living_Gods_of_Haiti"],
+ angersenses:["Senses of Cinema: Kenneth Anger","https://www.sensesofcinema.com/2003/great-directors/anger/"],
+ angerdoyle:["Doyle White, 'Lucifer Over Luxor' (2016)","https://discovery-pp.ucl.ac.uk/1503457/1/73-630-2-PB.pdf"],
+ agape:["Agape Lodge (Wikipedia)","https://en.wikipedia.org/wiki/Agape_Lodge"],
+ pleasuredome:["Inauguration of the Pleasure Dome (Wikipedia)","https://en.wikipedia.org/wiki/Inauguration_of_the_Pleasure_Dome"],
+ morin:["e-flux: Edgar Morin, 'Magical Vision'","https://www.e-flux.com/notes/6783502/magical-vision"],
+ youngblood:["Artforum on Youngblood's Expanded Cinema","https://www.artforum.com/columns/thomas-beard-on-gene-youngbloods-expanded-cinema-246575/"],
+ laistskull:["LAist: Technicolor Skull","https://laist.com/news/entertainment/icons-kenneth-anger-at-moca-with-te"],
+ aurapod:["Are Auras Real? (history of the aura)","https://sqpn.com/?p=115946"],
+ stolow:["Stolow, The Long History of the Human Aura (MIT Press Reader)","https://thereader.mitpress.mit.edu/the-long-history-of-the-human-aura"],
+ mumler:["Getty: The Man Who Photographed Ghosts (Mumler)","https://www.getty.edu/news/the-man-who-photographed-ghosts/"],
+ baraduc:["Thought-forms and thought photography (Encyclopedia.com)","https://www.encyclopedia.com/science/encyclopedias-almanacs-transcripts-and-maps/thoughtforms"],
+ pethes:["Pethes, 'Psychicones': Baraduc's fluidic photography","https://pmc.ncbi.nlm.nih.gov/articles/PMC4904334"],
+ tfbaraduc:["Thought-Forms (1905), p.12: Baraduc","https://digi.ub.uni-heidelberg.de/diglit/besant1905/0014"],
+ aura:["Aura (paranormal) (Wikipedia)","https://en.wikipedia.org/wiki/Aura_(paranormal)"],
+ tf:["Besant & Leadbeater, Thought-Forms (Gutenberg)","https://gutenberg.org/cache/epub/16269/pg16269-images.html"],
+ wikikupka:["František Kupka (Wikipedia)","https://en.wikipedia.org/wiki/Franti%C5%A1ek_Kupka"],
+ artforumkupka:["Artforum: problems from early Kupka","https://www.artforum.com/features/problems-from-early-kupka-209572/"],
+ kilner:["Kilner, The Human Atmosphere (1911), Wellcome Collection","https://wellcomecollection.org/works/t94es3zc"],
+ kirlian:["SPR Psi Encyclopedia: Kirlian photography","https://psi-encyclopedia.spr.ac.uk/sites/default/files/ebook/article/kirlian_photography-959.pdf"],
+ kirliancrit:["Coker, 'Kirlian photography and the aura' (UT Austin)","https://web2.ph.utexas.edu/~coker2/index.files/kirlian.shtml"],
+ leland:["Leland, The Rainbow Body (Quest)","https://www.theosophical.org/publications/quest-magazine/the-rainbow-body-how-the-western-chakra-system-came-to-be"],
+ nickell:["Nickell, 'Aura Photography: A Candid Shot' (2000)","https://cdn.centerforinquiry.org/wp-content/uploads/sites/29/2000/05/22164854/p15.pdf"],
+ vicekirl:["Vice: energy-field photography","https://www.vice.com/en/article/nz4kzz/were-glowing-over-energy-field-photography"],
+ ringer:["The Ringer: aura photography on Instagram","https://www.theringer.com/tech/2018/11/15/18050140/aura-photography-instagram-auracam6000-christina-lonsdale-new-age"],
+ tfchladni:["Thought-Forms: 'The form and its effect' (Chladni)","https://www.universalfreemasonry.org/en/library/thought-forms/the-form-and-its-effect"],
+ mckernan:["Luke McKernan, Colour music","https://lukemckernan.com/2014/08/21/colour-music/"],
+ cvmraum:["Center for Visual Music: Raumlichtkunst and László","https://centerforvisualmusic.org/CKSLAexc.htm"],
+ belson:["Moritz, Jordan Belson biography (CVM)","https://www.centerforvisualmusic.org/Belsonbio.htm"],
+ jenny:["Hans Jenny (Wikipedia)","https://en.wikipedia.org/wiki/Hans_Jenny_(cymatics)"],
+ cymwiki:["Cymatics (Wikipedia)","https://en.wikipedia.org/wiki/Cymatics"],
+ atariwiki:["Atari Video Music (Wikipedia)","https://en.wikipedia.org/wiki/Atari_Video_Music"],
+ musvizwiki:["Music visualization (Wikipedia)","https://en.wikipedia.org/wiki/Music_visualization"]
+};
+// ---------- ideas ----------
+// node: {id, yr (label), nm, k (kind), tx (panel text), src, mem (from memory)}
+// link: [from, to, evidence, text]   evidence: d documented · c likely (same circle or context) · p same idea, no hand-over shown
+const ID=[
+{t:"Synaesthesia and correspondences",q:"Can you hear a colour? How an old idea of cosmic harmony became an art of light.",
+ n:[{id:"pyt",yr:"c.500 BC",nm:"Pythagoras: music of the spheres",k:"sci",mem:1,tx:"Number orders both musical intervals and the planets: the root idea that sound, colour and cosmos share one harmony."},
+    {id:"kir",yr:"c.1650",nm:"Kircher pairs sound and light",k:"sci",tx:"The Jesuit scholar Athanasius Kircher proposed that sound and light correspond, and popularised the magic lantern.",src:["castel"]},
+    {id:"new",yr:"1704",nm:"Newton: seven colours, seven notes",k:"sci",tx:"Opticks matched the spectrum to the musical scale: the basis of almost every later colour-organ keyboard.",src:["saintdenis"]},
+    {id:"cas",yr:"1725",nm:"Castel's ocular harpsichord",k:"av",tx:"A Jesuit's keyboard to make sound visible with coloured glass; Telemann wrote for it. Colour music begins as Enlightenment science.",src:["castel","castelwiki"]},
+    {id:"swe",yr:"1750s",nm:"Swedenborg's correspondences",k:"occ",tx:"Visions of spirits and a doctrine that every natural thing corresponds to a spiritual one. Read by Blake, Baudelaire, Andrew Jackson Davis and Blavatsky.",src:["davisAJ"]},
+    {id:"bau",yr:"1857",nm:"Baudelaire and Rimbaud",k:"art",tx:"Baudelaire's sonnet 'Correspondances' (1857) and Rimbaud's 'Voyelles' made coloured hearing a literary ideal.",src:["dann"]},
+    {id:"the",yr:"1890s",nm:"Theosophy: a higher sense",k:"occ",tx:"Coloured hearing, already a scientific and Symbolist topic, recast as a glimpse of the astral world.",src:["dann"]},
+    {id:"scr",yr:"1911–12",nm:"Scriabin and Kandinsky",k:"av",tx:"Scriabin, a Theosophist, wrote a light part into Prometheus (lit in New York, 1915); Kandinsky staged colour, light and sound in The Yellow Sound. Dann argues neither was really a synaesthete.",src:["scriabinmyth","gawboy","ringbom","dann"]},
+    {id:"par",yr:"1937",nm:"Paris: festivals of light and music",k:"av",tx:"The Expo's nightly fêtes de la lumière on the Seine, scored by eighteen composers. A critic called their aim Baudelaire's dream of Correspondances.",src:["rcms1937"]},
+    {id:"mes",yr:"1930s–80s",nm:"Messiaen's coloured chords",k:"art",tx:"A devout Catholic with real sound-colour synaesthesia, who wrote colours into his scores. He composed Fête des belles eaux for the 1937 festival.",src:["ircammes","wikibelleseaux"]}],
+ l:[["pyt","kir","p","The same harmony of sound, light and cosmos, restated."],
+    ["kir","cas","d","Castel took his colour-music idea from Kircher."],
+    ["new","cas","p","The same colour–note analogy."],
+    ["swe","bau","d","Baudelaire read Swedenborg."],
+    ["bau","the","c","Theosophy took up a topic the Symbolists had made famous (Dann)."],
+    ["the","scr","d","Scriabin was a Theosophist; Kandinsky named Blavatsky in On the Spiritual in Art."],
+    ["bau","par","d","A 1937 critic described the festivals' aim as Baudelaire's dream of Correspondances."],
+    ["par","mes","d","Messiaen wrote Fête des belles eaux for the festival."]],
+ v:"<b>An idea that travels through books.</b> Kircher and Newton hand on a theory of colour–sound harmony; Swedenborg gives it a spiritual meaning, Baudelaire makes it art, Theosophy makes it a higher sense. Messiaen, the one composer with real sound-colour hearing, was a Catholic who arrived by his own route."},
+
+{t:"Cinema as ritual",q:"Is watching projected light in the dark a kind of rite?",
+ n:[{id:"cav",yr:"c.30,000 BC",nm:"Cave art by firelight",k:"av",tx:"Marc Azéma argues that many-legged, many-headed animals at Chauvet and Lascaux were made to move in flickering lamplight: 'a pre-echo of cinema'. A hypothesis, not settled.",src:["azema","nprazema"]},
+    {id:"pla",yr:"c.375 BC",nm:"Plato's cave",k:"sci",mem:1,tx:"Prisoners watch shadows thrown by firelight and take them for the world: the image most often called the first cinema."},
+    {id:"rob",yr:"1798",nm:"Robertson's Fantasmagorie",k:"show",tx:"Moving back-projected ghosts in a former Capuchin convent in Paris, framed as rational science; Philidor had already staged fake séance ghosts openly (1790).",src:["robertson","gunningphan"]},
+    {id:"sea",yr:"1850s",nm:"The séance room",k:"occ",tx:"Spiritualism's dark room, cabinet and apparitions: a nightly show of the dead for a seated audience.",src:["eddywiki","dbwiki"]},
+    {id:"ele",yr:"1910",nm:"Crowley's Rites of Eleusis",k:"occ",tx:"Seven planetary rites staged for ticket-holders in a darkened London hall: violin, dance, recitation and incense, aimed at ecstasy.",src:["eleusis","waddell"]},
+    {id:"lin",yr:"1915–23",nm:"Lindsay and Canudo",k:"art",tx:"Vachel Lindsay's The Art of the Moving Picture opens with the Egyptian Book of the Dead and hails film as a new Muse; Ricciotto Canudo names cinema the 'Seventh Art', a temple joining all the others.",src:["lindsay","canudo"]},
+    {id:"der",yr:"1946–54",nm:"Maya Deren",k:"av",tx:"Her films treat dance and gesture as rite. After seeing Bateson and Mead's Balinese trance footage she filmed Vodou possession in Haiti.",src:["brightderen","wikidivine"]},
+    {id:"ang",yr:"1954–72",nm:"Kenneth Anger",k:"av",tx:"A Thelemite who called his camera a 'magical weapon': Inauguration of the Pleasure Dome (1954), Lucifer Rising (1972–81).",src:["angersenses","angerdoyle"]},
+    {id:"mor",yr:"1956",nm:"Edgar Morin",k:"art",tx:"Le cinéma ou l'homme imaginaire: cinema rebuilds the old system of magic, with its double, metamorphosis and ubiquity.",src:["morin"]},
+    {id:"you",yr:"1970",nm:"Youngblood's Expanded Cinema",k:"av",tx:"'Expanded cinema actually means expanded consciousness': the light show and the Happening as the rites of a new tribe.",src:["youngblood"]},
+    {id:"sku",yr:"2009",nm:"Technicolor Skull",k:"av",tx:"Anger on theremin and Brian Butler on guitar, in front of Anger's films: billed as magick ritual.",src:["laistskull"]}],
+ l:[["cav","pla","p","Firelight and shadows again; no hand-over shown."],
+    ["pla","rob","p","A shadow show taken for reality, now as entertainment."],
+    ["rob","sea","c","Ghost shows and séances drew on the same public and the same effects."],
+    ["sea","ele","p","The same darkened room, a different religion."],
+    ["ele","ang","d","Anger was a Thelemite: Crowley's order reached him through Parsons and Cameron, who starred in Pleasure Dome.",["agape","pleasuredome"]],
+    ["lin","mor","p","Theory in parallel: each found ritual in cinema on his own."],
+    ["mor","you","p","The same claim, now for expanded cinema."],
+    ["ang","sku","d","Anger performed it himself."]],
+ v:"<b>Mostly the same idea, rediscovered.</b> The cave, Plato, the ghost show and the séance share a dark room and an apparition, but nothing is shown passing between them. Lindsay, Morin and Youngblood each found ritual in cinema on their own. The one personal line is ritual magic: Crowley's order to Anger, still performing it in 2009."},
+
+{t:"Auras: picturing the invisible person",q:"How did artists and machines try to show the soul around a body?",
+ n:[{id:"hal",yr:"c.300 on",nm:"Halos and glories",k:"art",mem:1,tx:"Rings and mandorlas of light round holy figures in Christian and Buddhist art: the aura before the word."},
+    {id:"rei",yr:"1845",nm:"Reichenbach's odic light",k:"sci",tx:"A luminous emanation said to be visible to 'sensitives' in the dark: one root of the later aura (date from memory).",src:["aurapod","stolow"]},
+    {id:"mum",yr:"1861",nm:"Mumler's spirit photographs",k:"occ",tx:"Double exposures in Boston 'proving' spirits: the camera as a machine that sees what eyes cannot.",src:["mumler"]},
+    {id:"bar",yr:"1896",nm:"Baraduc photographs thought",k:"sci",tx:"A Paris doctor told the Académie de Médecine he had photographed thought, and published the blurred plates in L'Âme humaine.",src:["baraduc","pethes"]},
+    {id:"tfa",yr:"1896–1905",nm:"Theosophy colours the aura",k:"occ",tx:"The aura with a colour code of emotions (Besant, Leadbeater, 1896–1903), and Thought-Forms' painted shapes of thoughts and feelings.",src:["aura","stolow","tf"]},
+    {id:"kup",yr:"1900s–12",nm:"Kupka: medium and painter",k:"art",tx:"He made his living as a medium at séances, believed in thought-forms, and turned them into abstract painting.",src:["wikikupka","artforumkupka"]},
+    {id:"kil",yr:"1911",nm:"Kilner's aura screens",k:"sci",tx:"A St Thomas' Hospital electrician claimed dye screens showed the human 'atmosphere'; reissued in 1965 as The Human Aura.",src:["kilner"]},
+    {id:"krl",yr:"1939/1970",nm:"Kirlian photography",k:"sci",tx:"High-voltage photographs of a glowing corona, read in the West after 1970 as pictures of the aura.",src:["kirlian","kirliancrit"]},
+    {id:"nag",yr:"1977–",nm:"New Age aura reading",k:"occ",tx:"Leadbeater's colours and chakras taken up by the New Age; the rainbow chakra colours are a 1970s addition.",src:["leland"]},
+    {id:"cog",yr:"1992",nm:"The aura camera",k:"av",tx:"Guy Coggins's Aura Imaging camera: hand sensors read the body, software picks the colours. Now an Instagram genre.",src:["nickell","ringer"]}],
+ l:[["hal","rei","p","The radiant body, again."],
+    ["rei","tfa","d","The Theosophical aura built on Reichenbach's odic light and mesmerist emanations.",["stolow"]],
+    ["mum","bar","p","The same dream: photographing the invisible."],
+    ["bar","tfa","d","Thought-Forms describes Baraduc's plates as scientific backing.",["tfbaraduc"]],
+    ["tfa","kup","d","Kupka believed in thought-forms and drew on the plates."],
+    ["tfa","kil","c","A medical claim to make the occult aura visible; Kilner's preface addresses occult readers."],
+    ["kil","krl","p","Both reissued and read as aura science in the 1960s–70s."],
+    ["tfa","nag","d","The aura's colours and their meanings."],
+    ["krl","cog","d","Coggins built on Kirlian photography.",["vicekirl","nickell"]]],
+ v:"<b>A Theosophical core, with science as its 'proof'.</b> The coloured aura with emotional meanings is a Theosophical invention of 1896–1903. Each new instrument after it, from Kilner's screens to Kirlian photography and the aura camera, was read as photographing it. Kupka took it straight from the séance room into painting."},
+
+{t:"Music made visible",q:"How did music turn into moving pictures?",
+ n:[{id:"new",yr:"1704",nm:"Newton: seven colours, seven notes",k:"sci",tx:"Opticks matched the spectrum to the musical scale: the basis of almost every later colour-organ keyboard.",src:["saintdenis"]},
+    {id:"cas",yr:"1725",nm:"Castel's ocular harpsichord",k:"av",tx:"Coloured glass played from a keyboard 'to render sound visible'.",src:["castel","castelwiki"]},
+    {id:"chl",yr:"1787",nm:"Chladni's sand figures",k:"sci",tx:"Sand on a bowed plate settles into geometric figures: sound visibly making form.",src:["tfchladni"]},
+    {id:"rim",yr:"1877–95",nm:"Colour organs",k:"av",tx:"Bainbridge Bishop's colour organ (1877) and Rimington's patented Colour-Organ (1893–95): coloured light played from a keyboard, with no Theosophical framing.",src:["mckernan"]},
+    {id:"tfm",yr:"1901",nm:"'Forms built by music'",k:"occ",tx:"Thought-Forms paints the shapes raised over a church by Mendelssohn, Gounod and Wagner, and offers Chladni plates as physical proof.",src:["tf","tfchladni"]},
+    {id:"kan",yr:"1911–12",nm:"Kandinsky and Kupka",k:"art",tx:"Painting as music: Kandinsky's compositions and The Yellow Sound; Kupka's Amorpha, Fugue in Two Colours.",src:["ringbom","wikikupka"]},
+    {id:"las",yr:"1925–26",nm:"László and Fischinger",k:"av",tx:"Alexander László's colour-light piano concerts; Fischinger's films were added in March 1926, then his own three-projector shows.",src:["cvmraum"]},
+    {id:"vor",yr:"1957–59",nm:"Belson and Jacobs' Vortex",k:"av",tx:"Electronic music with abstract projections on the Morrison Planetarium dome, San Francisco.",src:["belson"]},
+    {id:"jen",yr:"1967",nm:"Jenny's Cymatics",k:"sci",tx:"Hans Jenny, an Anthroposophist, films sound shaping sand, pastes and liquids, and names it cymatics.",src:["jenny","cymwiki"]},
+    {id:"ata",yr:"1977",nm:"Atari Video Music",k:"av",tx:"The first commercial electronic music visualiser, by Bob Brown of home Pong: plug in the stereo, watch patterns on the TV.",src:["atariwiki"]},
+    {id:"viz",yr:"1993–",nm:"Visualisers and VJs",k:"av",tx:"Software visualisers from Cthugha (1993) to iTunes; the VJ plays them live in clubs.",src:["musvizwiki"]}],
+ l:[["new","cas","p","The same colour–note analogy."],
+    ["cas","rim","p","Colour organs again, built anew."],
+    ["chl","tfm","d","Thought-Forms offers Chladni plates as physical proof.",["tfchladni"]],
+    ["tfm","kan","d","Ringbom traced Kandinsky's forms to Thought-Forms; Kupka drew on its plates.",["ringbom","wikikupka"]],
+    ["rim","las","p","Colour-light concerts again."],
+    ["las","vor","d","Belson saw Fischinger's films at Art in Cinema (1946) and turned to the moving abstract image.",["belson"]],
+    ["chl","jen","c","Cymatics revives Chladni's figures.",["cymwiki"]],
+    ["vor","ata","p","Abstract light to music, now in a box for the home."],
+    ["ata","viz","p","The first of many."]],
+ v:"<b>Science first, then spirit, then the living room.</b> Colour organs and Chladni's figures began as physics. Theosophy's 'forms built by music' gave them a spiritual meaning that reached Kandinsky and Kupka, and abstract film carried the forms on. By 1977 a Pong engineer had put music visualisation in the home, with no doctrine at all."}
+];
+// ---------- look ----------
+const KIND={sci:["Science & philosophy","#3f7f6e"],occ:["Occult & Theosophy","#5b2a86"],art:["Art & ideas","#c27a12"],av:["Light, film & AV","#2f6db5"],show:["Shows & magic","#7a5230"]};
+const EV={d:["Took it from","#1D9E75","","documented"],c:["Likely","#0e8fa0","10 6","same circle or context"],p:["Same idea","#8a8780","2 7","no hand-over shown"]};
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let ii=0,step=0,flat=false,lastDrag=-1e9,K=1,cards=[],nodes=[],lines=[],thread=null;
+function fit(){K=Math.min(innerWidth/1920,innerHeight/1080);const st=$("stage");st.style.transform=`scale(${K})`;st.style.left=((innerWidth-1920*K)/2)+"px";st.style.top=((innerHeight-1080*K)/2)+"px";}
+addEventListener("resize",fit);
+$("pick").innerHTML=ID.map((c,i)=>`<option value="${i}">${i+1}. ${esc(c.t)}</option>`).join("");
+$("legend").innerHTML=Object.values(EV).map(([t,c,da,sub])=>`<span><svg width="38" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="${c}" stroke-width="4" stroke-dasharray="${da}" stroke-linecap="round"/></svg>${t} <span style="color:#a3a198">(${sub})</span></span>`).join("")
+ +`<span class="sep"></span>`+Object.values(KIND).map(([t,c])=>`<span><i style="background:${c}"></i>${t}</span>`).join("");
+const srcs=k=>(k||[]).filter(x=>S[x]).map(x=>`<a href="${S[x][1]}" target="_blank" rel="noopener">${esc(S[x][0])}</a>`).join("");
+// ---------- 3D ----------
+// Overview: the whole lineage as a ribbon of cards turned in space (drag to turn it).
+// Stepping: a tunnel looking back through time; the current moment at the front, earlier ones receding, later ones hidden.
+// Flat: the same ribbon, face on.
+const F=780,ZOFF=700,DZ=200,RX=420,RY=170,CX=960,CY=430,DT=2*Math.PI/5.2;   // tunnel
+const RD=1500,PSI0=0.36,BOX=[92,1828,246,716];                              // ribbon
+let cam=0,camT=0,rot=Math.PI/2,rotT=Math.PI/2,psi=PSI0,psiB=PSI0,vw=0,FIT={s:1,ox:0,oy:0};
+function spF(n){return Math.min(165,1480/Math.max(1,n-1));}
+const rowY=i=>(i%2?95:-95);
+function ribRaw(t,n){const X=(t-(n-1)/2)*spF(n),lo=Math.floor(t),fr=t-lo,Y=rowY(lo)*(1-fr)+rowY(Math.min(lo+1,n-1))*fr,
+ x1=X*Math.cos(psi),z1=X*Math.sin(psi),k=RD/(RD-z1);return {x:x1*k,y:Y*k,k,z:z1};}
+function fitRibbon(n){let L=1e9,R=-1e9,T=1e9,B=-1e9;
+ for(let i=0;i<n;i++){const p=ribRaw(i,n);L=Math.min(L,p.x-118*p.k);R=Math.max(R,p.x+118*p.k);T=Math.min(T,p.y-48*p.k);B=Math.max(B,p.y+48*p.k);}
+ const s=Math.min(1,(BOX[1]-BOX[0])/(R-L),(BOX[3]-BOX[2])/(B-T));
+ FIT={s,ox:(BOX[0]+BOX[1])/2-s*(L+R)/2,oy:(BOX[2]+BOX[3])/2-s*(T+B)/2};}
+function pos(t,n){
+ const r=ribRaw(t,n),rx=FIT.ox+FIT.s*r.x,ry=FIT.oy+FIT.s*r.y,rk=FIT.s*r.k;
+ const th=t*DT+rot,d=(cam-t)*DZ+ZOFF,tk=F/Math.max(d,60),tx=CX+RX*Math.cos(th)*tk,ty=CY+RY*Math.sin(th)*tk;
+ return {x:rx*(1-vw)+tx*vw,y:ry*(1-vw)+ty*vw,k:rk*(1-vw)+tk*vw,d,z:r.z,rk};}
+function build(){
+ const c=ID[ii];
+ $("cards").innerHTML=c.n.map((d,i)=>{const col=KIND[d.k][1];return `<div class="card${d.mem?" mem":""}" data-i="${i}"><div class="bar" style="background:${col}"></div><div class="yr" style="color:${col}">${esc(d.yr)}</div><div class="nm">${esc(d.nm)}</div></div>`;}).join("");
+ cards=[...document.querySelectorAll("#cards .card")];
+ let svg="<defs>"+Object.entries(EV).map(([k,[t,col]])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker>`).join("")+"</defs>";
+ svg+=`<path id="thr" fill="none" stroke="#d6d3c9" stroke-width="3" stroke-linecap="round"/>`;
+ svg+=c.l.map((l,i)=>{const [t,col,da]=EV[l[2]];return `<path data-l="${i}" fill="none" stroke="${col}" stroke-width="4" stroke-dasharray="${da}" stroke-linecap="round"${l[2]!=="p"?` marker-end="url(#ah${l[2]})"`:""}/>`;}).join("");
+ $("threads").innerHTML=svg;thread=$("thr");lines=[...$("threads").querySelectorAll("path[data-l]")];
+}
+function vis(i,p,n,kmin,kmax,feed){
+ const cur=step-1,df=cam-i;
+ const rib=flat?(step>0&&i>cur?0.14:1):0.62+0.38*(kmax>kmin?(p.rk-kmin)/(kmax-kmin):1);
+ // in the tunnel: the moment just reached and the two before it are clear, older ones fade out,
+ // except a moment that feeds the current one, which stays visible
+ const near=Math.max(0,Math.min(1,df+1)),far=Math.max(feed?0.9:0,Math.min(1,1-(df-2.5)/2));
+ return rib*(1-vw)+near*far*vw;}
+function frame(){
+ const c=ID[ii],n=c.n.length,now=performance.now(),a=RM?1:0.085,cur=step-1;
+ const vT=(flat||step===0)?0:1;
+ if(!flat&&step===0&&!RM&&now-lastDrag>3000)psiB+=(PSI0-psiB)*0.01;      // drift back to the resting angle
+ const psiT=flat?0:psiB+(!RM&&step===0&&!flat?0.07*Math.sin(now/2300):0);
+ psi+=(psiT-psi)*a;cam+=(camT-cam)*a;rot+=(rotT-rot)*a;vw+=(vT-vw)*(RM?1:0.075);
+ fitRibbon(n);
+ const P=c.n.map((d,i)=>pos(i,n)),ks=P.map(p=>p.rk),kmin=Math.min(...ks),kmax=Math.max(...ks),
+  feeds=new Set(step>0?c.l.filter(l=>l[1]===c.n[cur].id).map(l=>l[0]):[]),O=P.map((p,i)=>vis(i,p,n,kmin,kmax,feeds.has(c.n[i].id)));
+ // thread through time
+ let pts=[];for(let t=0;t<=n-1+1e-6;t+=0.1){if(vw>0.5&&t>cam+0.05)break;if(vw>0.5&&cam-t>4.6)continue;const p=pos(t,n);pts.push(p.x.toFixed(1)+","+p.y.toFixed(1));}
+ thread.setAttribute("d",pts.length>1?"M"+pts.join(" L"):"");thread.setAttribute("opacity",(0.45+0.55*vw).toFixed(2));
+ // cards
+ P.forEach((p,i)=>{const el=cards[i],op=O[i],s=p.k*(i===cur&&vw>0.5?1.06:1);
+  el.style.transform=`translate(${(p.x-118).toFixed(1)}px,${(p.y-38).toFixed(1)}px) scale(${s.toFixed(3)})`;
+  el.style.opacity=op.toFixed(3);
+  el.style.zIndex=String(vw>0.5?Math.round(4000-p.d)+(i===cur?500:0):Math.round(2000+p.z)+(i===cur?500:0));
+  el.style.pointerEvents=op<0.1?"none":"auto";el.classList.toggle("sel",i===cur);});
+ // links
+ c.l.forEach((l,i)=>{const a=c.n.findIndex(d=>d.id===l[0]),b=c.n.findIndex(d=>d.id===l[1]),A=P[a],B=P[b];
+  const dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy)||1;
+  // on the ribbon, a link between two cards in the same row arcs outside the row
+  const same=a%2===b%2&&Math.abs(a-b)>=2,lift=same?(a%2?1:-1)*(46+len*0.1)*(1-vw):0;
+  let x1,y1,x2,y2;
+  if(same&&vw<0.5){x1=A.x+Math.sign(dx)*40*A.k;y1=A.y+Math.sign(lift)*40*A.k;x2=B.x-Math.sign(dx)*40*B.k;y2=B.y+Math.sign(lift)*44*B.k;}
+  else{const ca=Math.min(len*0.36,60*A.k),cb=Math.min(len*0.36,60*B.k);x1=A.x+dx/len*ca;y1=A.y+dy/len*ca;x2=B.x-dx/len*cb;y2=B.y-dy/len*cb;}
+  const mx=(x1+x2)/2-dy/len*16,my=(y1+y2)/2+dx/len*16+lift*1.6;
+  lines[i].setAttribute("d",`M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`);
+  let op=Math.min(O[a],O[b]);if(step>0&&b===cur)op=Math.max(op,0.95);else if(step>0)op*=0.55;
+  lines[i].setAttribute("opacity",op.toFixed(3));lines[i].setAttribute("stroke-width",step>0&&b===cur?6:4);});
+ requestAnimationFrame(frame);}
+function aim(){// in the tunnel, bring the current moment to the front, bottom centre
+ if(step===0)return;const i=step-1;camT=i;let target=Math.PI/2-i*DT;target+=Math.round((rot-target)/(2*Math.PI))*2*Math.PI;rotT=target;}
+// ---------- panel ----------
+function panel(){
+ const c=ID[ii];
+ if(step===0){return `<div class="pn l"><div class="ev">The whole idea · ${c.n.length} moments</div><div class="h">${esc(c.t)}</div><div class="tx">${esc(c.q)} Step through with ▶, or click any card.</div></div>`
+  +`<div class="pn r"><div class="ev">How to read the links</div>`+Object.values(EV).map(([t,col,da,sub])=>`<div class="lk"><i style="background:${col}">${t}</i>${sub}</div>`).join("")+`<div class="lk" style="color:#8a8780">Cards marked 'from memory' have no source on this page yet.</div></div>`;}
+ const i=step-1,d=c.n[i],col=KIND[d.k][1];
+ const inc=c.l.filter(l=>l[1]===d.id),out=c.l.filter(l=>l[0]===d.id);
+ const nm=id=>esc(c.n.find(x=>x.id===id).nm);
+ let r=inc.length?inc.map(l=>{const [t,cl]=EV[l[2]];return `<div class="lk"><i style="background:${cl}">${t}</i>from <b>${nm(l[0])}</b>: ${esc(l[3])}${l[4]?`<span class="lks">${srcs(l[4])}</span>`:""}</div>`;}).join(""):`<div class="lk" style="color:#8a8780">No earlier moment on this page is linked to it.</div>`;
+ if(out.length)r+=`<div class="lk" style="color:#6b6a65">Passes to: ${out.map(l=>`<b>${nm(l[1])}</b>`).join(", ")}</div>`;
+ return `<div class="pn l" style="border-top-color:${col}"><div class="ev" style="color:${col}">${esc(d.yr)} · ${KIND[d.k][0]}${d.mem?" · from memory":""}</div><div class="h">${esc(d.nm)}</div><div class="tx">${esc(d.tx)}</div><div class="src">${srcs(d.src)}</div></div>`
+  +`<div class="pn r" style="border-top-color:${inc.length?EV[inc[0][2]][1]:"#c9c6bc"}"><div class="ev">How it arrived</div>${r}</div>`;}
+function draw(){
+ const c=ID[ii],n=c.n.length;
+ $("title").textContent=`${ii+1} · ${c.t}`;$("q").textContent=c.q;$("count").textContent=`${ii+1} of ${ID.length}`;$("pick").value=ii;
+ $("panel").innerHTML=panel();$("verdict").innerHTML=c.v;$("verdict").className=(step===0||step>=n)?"":"hide";
+ $("bprev").disabled=step<=0;$("bnext").disabled=step>=n;$("bflat").textContent=flat?"3D":"Flat";
+ aim();
+ try{history.replaceState(null,"","#"+(ii+1));}catch(e){}}
+function setIdea(i){ii=(i+ID.length)%ID.length;step=0;cam=camT=0;rot=rotT=Math.PI/2;psiB=PSI0;build();draw();}
+function move(dlt){const n=ID[ii].n.length;step=Math.max(0,Math.min(n,step+dlt));draw();}
+$("pick").onchange=e=>{setIdea(+e.target.value);e.target.blur();};
+$("bstart").onclick=()=>{step=0;draw();};$("bprev").onclick=()=>move(-1);$("bnext").onclick=()=>move(1);
+$("bflat").onclick=()=>{flat=!flat;draw();};
+function full(){if(document.fullscreenElement)document.exitFullscreen();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}
+$("bfull").onclick=full;
+// drag to turn; click a card to focus
+let drag=null;
+$("stage").addEventListener("pointerdown",e=>{if(e.target.closest("#top,#panel,#verdict,#legend"))return;drag={x:e.clientX,y:e.clientY,moved:false,card:e.target.closest(".card")};});
+addEventListener("pointermove",e=>{if(!drag)return;const dx=(e.clientX-drag.x)/K,dy=(e.clientY-drag.y)/K;if(!drag.moved&&Math.hypot(dx,dy)>5){drag.moved=true;$("scene").classList.add("drag");}
+ if(drag.moved){if(vw>0.5){rotT+=(dx*0.006+dy*0.004);rot=rotT;}else if(!flat){psiB=Math.max(-0.75,Math.min(0.75,psiB+dx*0.0022));}drag.x=e.clientX;drag.y=e.clientY;lastDrag=performance.now();}});
+addEventListener("pointerup",()=>{if(drag&&!drag.moved&&drag.card){step=+drag.card.dataset.i+1;draw();}drag=null;$("scene").classList.remove("drag");});
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;
+ if(["ArrowRight"," ","PageDown"].includes(e.key)){e.preventDefault();move(1);}
+ else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();move(-1);}
+ else if(e.key==="ArrowDown"){e.preventDefault();setIdea(ii+1);}
+ else if(e.key==="ArrowUp"){e.preventDefault();setIdea(ii-1);}
+ else if(e.key==="Home"){step=0;draw();}
+ else if(e.key==="End"){step=ID[ii].n.length;draw();}
+ else if(e.key==="v"||e.key==="V"){flat=!flat;draw();}
+ else if(e.key==="f"||e.key==="F")full();});
+const hh=parseInt((location.hash||"").slice(1),10);
+fit();setIdea(hh>=1&&hh<=ID.length?hh-1:0);requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
